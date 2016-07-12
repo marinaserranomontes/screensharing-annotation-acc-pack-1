@@ -2,6 +2,7 @@ package com.tokbox.android.accpack.screensharing;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
@@ -15,7 +16,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -31,11 +31,9 @@ import com.opentok.android.PublisherKit;
 import com.opentok.android.Session;
 import com.opentok.android.Stream;
 import com.tokbox.android.accpack.AccPackSession;
-
-
+import com.tokbox.android.accpack.screensharing.config.OpenTokConfig;
 import com.tokbox.android.annotations.AnnotationsToolbar;
 import com.tokbox.android.annotations.AnnotationsView;
-import com.tokbox.android.accpack.screensharing.config.OpenTokConfig;
 import com.tokbox.android.annotations.utils.AnnotationsVideoRenderer;
 import com.tokbox.android.logging.OTKAnalytics;
 import com.tokbox.android.logging.OTKAnalyticsData;
@@ -75,6 +73,7 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
 
     private AnnotationsView mAnnotationsView;
     private AnnotationsToolbar mAnnotationsToolbar;
+    private AnnotationsToolbar mRemoteAnnotationsToolbar;
 
     private RelativeLayout mScreensharingBar;
     private View mScreensharingLeftView;
@@ -84,6 +83,7 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
 
     private boolean isStarted = false;
     private boolean isAnnotationsEnabled = false;
+    private boolean isRemoteAnnotationsEnabled = false;
     private boolean isAudioEnabled = true;
 
     private ViewGroup mScreen;
@@ -146,6 +146,9 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
          * @param view The annotations view.
          */
         void onAnnotationsViewReady(AnnotationsView view);
+
+        void onAnnotationsRemoteViewReady(AnnotationsView view);
+
 
         /**
          * Invoked when the close button is clicked.
@@ -267,7 +270,6 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         else {
             addLogEvent(OpenTokConfig.LOG_ACTION_DISABLE_ANNOTATIONS, OpenTokConfig.LOG_VARIATION_ATTEMPT);
             addLogEvent(OpenTokConfig.LOG_ACTION_DISABLE_ANNOTATIONS, OpenTokConfig.LOG_VARIATION_SUCCESS);
-
         }
     }
 
@@ -287,6 +289,22 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
             addLogEvent(OpenTokConfig.LOG_ACTION_DISABLE_AUDIO_SCREENSHARING, OpenTokConfig.LOG_VARIATION_ATTEMPT);
             addLogEvent(OpenTokConfig.LOG_ACTION_DISABLE_AUDIO_SCREENSHARING, OpenTokConfig.LOG_VARIATION_SUCCESS);
         }
+    }
+
+
+    public void enableRemoteAnnotations(boolean annotationsEnabled, AnnotationsToolbar toolbar, ViewGroup view) {
+        AnnotationsView remoteAnnotationsView = new AnnotationsView(getContext(), mSession, mApiKey, false);
+
+        AnnotationsVideoRenderer mRemoteRenderer = new AnnotationsVideoRenderer(getContext());
+
+        remoteAnnotationsView.setVideoRenderer(mRemoteRenderer); //to use screencapture
+        mRemoteAnnotationsToolbar = toolbar;
+        remoteAnnotationsView.attachToolbar(mRemoteAnnotationsToolbar);
+        isRemoteAnnotationsEnabled  = annotationsEnabled;
+        //remoteAnnotationsView.setBackgroundColor(Color.RED);
+        onAnnotationsRemoteViewReady(remoteAnnotationsView);
+        ((ViewGroup)view).addView(remoteAnnotationsView);
+
     }
 
     @Override
@@ -415,7 +433,8 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         mScreenPublisher = new ScreenPublisher(getContext(), "screenPublisher", isAudioEnabled, true, capturer);
         mScreenPublisher.setPublisherVideoType(PublisherKit.PublisherKitVideoType.PublisherKitVideoTypeScreen);
         mScreenPublisher.setPublisherListener(this);
-
+        /*mScreenPublisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+                                    BaseVideoRenderer.STYLE_VIDEO_FIT);*/
         mRenderer = new AnnotationsVideoRenderer(getContext());
         mScreenPublisher.setRenderer(mRenderer);
 
@@ -493,6 +512,12 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         }
     }
 
+    protected void onAnnotationsRemoteViewReady(AnnotationsView view){
+        if ( mListener != null ){
+            mListener.onAnnotationsRemoteViewReady(view);
+        }
+    }
+
     @Override
     public void onConnected(Session session) {
         isConnected = true;
@@ -505,7 +530,7 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
 
     @Override
     public void onStreamReceived(Session session, Stream stream) {
-
+        Log.i(LOG_TAG, "OnStreamReceived");
     }
 
     @Override
@@ -527,7 +552,7 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         isStarted = true;
 
         if ( mAnnotationsView == null ){
-            mAnnotationsView = new AnnotationsView(getContext(), mSession, mApiKey);
+            mAnnotationsView = new AnnotationsView(getContext(), mSession, mApiKey, true);
             mAnnotationsView.attachToolbar(mAnnotationsToolbar);
             mAnnotationsView.setVideoRenderer(mRenderer); //to use screencapture
         }
@@ -570,6 +595,22 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
 
             mAnnotationsToolbar.setLayoutParams(params);
         }
+        /*if (isRemoteAnnotationsEnabled) {
+            Log.i("MARINAS", "REMOTE ENABLED");
+            if (mRemoteAnnotationsToolbar.getVisibility() == View.VISIBLE) {
+                mRemoteAnnotationsToolbar.setVisibility(View.GONE);
+            } else {
+                mRemoteAnnotationsToolbar.setVisibility(View.VISIBLE);
+                mRemoteAnnotationsToolbar.restart();
+            }
+
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)mRemoteAnnotationsToolbar.getLayoutParams();
+            params.leftMargin = dpToPx(5);
+            params.rightMargin = dpToPx(5);
+            params.bottomMargin = dpToPx(5);
+
+            mRemoteAnnotationsToolbar.setLayoutParams(params);
+        }*/
     }
 
     private int dpToPx(int dp) {

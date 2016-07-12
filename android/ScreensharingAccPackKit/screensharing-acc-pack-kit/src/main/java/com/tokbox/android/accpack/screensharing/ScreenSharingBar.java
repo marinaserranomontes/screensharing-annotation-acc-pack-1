@@ -1,14 +1,8 @@
 package com.tokbox.android.accpack.screensharing;
 
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
-import android.media.Image;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -43,7 +37,7 @@ public class ScreenSharingBar extends RelativeLayout{
         mCloseBtn.setBackground(null);
         mCloseBtn.setClickable(true);
 
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+        LayoutParams params = new LayoutParams(
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT);
 
@@ -53,7 +47,7 @@ public class ScreenSharingBar extends RelativeLayout{
         mTextView = new TextView(context);
         mTextView.setText(R.string.screensharing_text);
 
-        params = new RelativeLayout.LayoutParams(
+        params = new LayoutParams(
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT);
         params.addRule(CENTER_HORIZONTAL);

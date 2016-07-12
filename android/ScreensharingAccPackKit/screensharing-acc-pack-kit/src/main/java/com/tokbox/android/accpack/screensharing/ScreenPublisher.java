@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.opentok.android.BaseVideoCapturer;
 import com.opentok.android.Publisher;
-import com.opentok.android.PublisherKit;
 
 import java.io.Serializable;
 

@@ -85,9 +85,10 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     private TableLayout menu4;
 
     private AnnotationsToolbar mAnnotationsToolbar;
+    private AnnotationsToolbar mRemmoteAnnotationsToolbar;
     private boolean screenshot;
 
-
+    private boolean remoteAnnotations = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +110,13 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         mScreenSharingContainer = (FrameLayout) findViewById(R.id.screensharing_fragment_container);
 
         mAnnotationsToolbar = (AnnotationsToolbar) findViewById(R.id.annotations_bar);
+        mRemmoteAnnotationsToolbar = new AnnotationsToolbar(this);
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        mRemmoteAnnotationsToolbar.setLayoutParams(params);
 
         menu1 = (TableLayout) findViewById(R.id.menu1);
         menu2 = (RelativeLayout) findViewById(R.id.menu2);
@@ -448,6 +456,16 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                             this.getResources().getDisplayMetrics().widthPixels, this.getResources()
                             .getDisplayMetrics().heightPixels);
                     mRemoteViewContainer.addView(mComm.getRemoteScreenView(), layoutParams);
+
+                    if ( !remoteAnnotations ) {
+                        //enable annotations
+
+                        mScreenSharingFragment.enableRemoteAnnotations(true,  mRemmoteAnnotationsToolbar, mRemoteViewContainer);
+
+                        mRemoteViewContainer.addView(mRemmoteAnnotationsToolbar);
+                        //mRemmoteAnnotationsToolbar.setVisibility(View.VISIBLE);
+                        remoteAnnotations = true;
+                    }
                 }
             } else {
                 if (mComm.isStarted()) {
@@ -473,10 +491,9 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 }
             }
         }
-    }
+     }
 
-        //Private methods
-
+    //Private methods
     private void initPreviewFragment() {
         mPreviewFragment = new PreviewControlFragment();
         getSupportFragmentManager().beginTransaction()
@@ -572,6 +589,11 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     public void onAnnotationsViewReady(AnnotationsView view) {
         Log.i(LOG_TAG, "onAnnotationsViewReady ");
         view.setAnnotationsListener(this);
+    }
+
+    @Override
+    public void onAnnotationsRemoteViewReady(AnnotationsView view) {
+        Log.i(LOG_TAG, "onAnnotationsRemoteViewReady ");
     }
 
     @Override

@@ -4,6 +4,8 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Rect;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
@@ -18,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ScreenSharingCapturer extends BaseVideoCapturer{
+public class ScreenSharingCapturer extends BaseVideoCapturer {
     private static final String LOG_TAG = ScreenSharingCapturer.class.getSimpleName();
     private Context mContext;
 
@@ -160,10 +162,17 @@ public class ScreenSharingCapturer extends BaseVideoCapturer{
 
                         Buffer buffer2 = planes[0].getBuffer().rewind();
                         bmp = Bitmap.createBitmap(imgWidth + rowPadding / pixelStride, imgHeight, Bitmap.Config.ARGB_8888);
-
                         bmp.copyPixelsFromBuffer(buffer2);
-                        lastBmp = bmp.copy(bmp.getConfig(), true);
+
+                        Rect rect = mImage.getCropRect();
+
+                        //lastBmp = TrimBitmap(bmp);
+                        lastBmp = Bitmap.createBitmap(bmp, rect.left, rect.top, rect.right,rect.bottom);
+
+                        //lastBmp = bmp.copy(bmp.getConfig(), true);
                     }
+
+
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -178,5 +187,79 @@ public class ScreenSharingCapturer extends BaseVideoCapturer{
                 }
 
         }
+    }
+
+
+    public static Bitmap TrimBitmap(Bitmap bmp) {
+        int imgHeight = bmp.getHeight();
+        int imgWidth  = bmp.getWidth();
+
+
+        //TRIM WIDTH - LEFT
+        int startWidth = 0;
+        for(int x = 0; x < imgWidth; x++) {
+            if (startWidth == 0) {
+                for (int y = 0; y < imgHeight; y++) {
+                    if (bmp.getPixel(x, y) != Color.BLACK) {
+                        startWidth = x;
+                        break;
+                    }
+                }
+            } else break;
+        }
+
+
+        //TRIM WIDTH - RIGHT
+        int endWidth  = 0;
+        for(int x = imgWidth - 1; x >= 0; x--) {
+            if (endWidth == 0) {
+                for (int y = 0; y < imgHeight; y++) {
+                    if (bmp.getPixel(x, y) != Color.BLACK) {
+                        endWidth = x;
+                        break;
+                    }
+                }
+            } else break;
+        }
+
+
+
+        //TRIM HEIGHT - TOP
+        int startHeight = 0;
+        for(int y = 0; y < imgHeight; y++) {
+            if (startHeight == 0) {
+                for (int x = 0; x < imgWidth; x++) {
+                    if (bmp.getPixel(x, y) != Color.BLACK) {
+                        startHeight = y;
+                        break;
+                    }
+                }
+            } else break;
+        }
+
+
+
+        //TRIM HEIGHT - BOTTOM
+        int endHeight = 0;
+        for(int y = imgHeight - 1; y >= 0; y--) {
+            if (endHeight == 0 ) {
+                for (int x = 0; x < imgWidth; x++) {
+                    if (bmp.getPixel(x, y) != Color.BLACK) {
+                        endHeight = y;
+                        break;
+                    }
+                }
+            } else break;
+        }
+
+
+        return Bitmap.createBitmap(
+                bmp,
+                startWidth,
+                startHeight,
+                endWidth - startWidth,
+                endHeight - startHeight
+        );
+
     }
 }
