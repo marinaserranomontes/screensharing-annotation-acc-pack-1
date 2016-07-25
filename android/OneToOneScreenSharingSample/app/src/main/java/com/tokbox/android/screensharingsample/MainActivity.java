@@ -92,9 +92,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     private boolean screenshot;
     private boolean remoteAnnotations = false;
 
-    private Subscriber remote;
-    private Publisher local;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(LOG_TAG, "onCreate");
@@ -469,7 +466,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                         mRemoteViewContainer.addView(mRemmoteAnnotationsToolbar);
                         remoteAnnotations = true;
                     }
-
                 }
             } else {
                 if (mComm.isStarted()) {
@@ -495,18 +491,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 }
             }
         }
-    }
-
-    @Override
-    public void onNewRemote(Subscriber subscriber) {
-        remote = subscriber;
-    }
-
-    @Override
-    public void onNewLocal(Publisher publisher) {
-        local = publisher;
-        mScreenSharingFragment.enableAnnotations(true, mAnnotationsToolbar);
-
     }
 
     //Private methods
