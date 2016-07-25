@@ -29,6 +29,8 @@ import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.opentok.android.Publisher;
+import com.opentok.android.Subscriber;
 import com.tokbox.android.accpack.OneToOneCommunication;
 import com.tokbox.android.annotations.AnnotationsToolbar;
 import com.tokbox.android.annotations.AnnotationsView;
@@ -85,9 +87,13 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     private TableLayout menu4;
 
     private AnnotationsToolbar mAnnotationsToolbar;
+    private AnnotationsToolbar mRemmoteAnnotationsToolbar;
+
     private boolean screenshot;
+    private boolean remoteAnnotations = false;
 
-
+    private Subscriber remote;
+    private Publisher local;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +115,14 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         mScreenSharingContainer = (FrameLayout) findViewById(R.id.screensharing_fragment_container);
 
         mAnnotationsToolbar = (AnnotationsToolbar) findViewById(R.id.annotations_bar);
+
+        mRemmoteAnnotationsToolbar = new AnnotationsToolbar(this);
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        mRemmoteAnnotationsToolbar.setLayoutParams(params);
 
         menu1 = (TableLayout) findViewById(R.id.menu1);
         menu2 = (RelativeLayout) findViewById(R.id.menu2);
@@ -448,6 +462,14 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                             this.getResources().getDisplayMetrics().widthPixels, this.getResources()
                             .getDisplayMetrics().heightPixels);
                     mRemoteViewContainer.addView(mComm.getRemoteScreenView(), layoutParams);
+
+                    if ( !remoteAnnotations ) {
+                        //enable annotations
+                        mScreenSharingFragment.enableRemoteAnnotations(true,  mRemmoteAnnotationsToolbar,mRemoteViewContainer, mComm.getRemote());
+                        mRemoteViewContainer.addView(mRemmoteAnnotationsToolbar);
+                        remoteAnnotations = true;
+                    }
+
                 }
             } else {
                 if (mComm.isStarted()) {
@@ -475,7 +497,19 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         }
     }
 
-        //Private methods
+    @Override
+    public void onNewRemote(Subscriber subscriber) {
+        remote = subscriber;
+    }
+
+    @Override
+    public void onNewLocal(Publisher publisher) {
+        local = publisher;
+        mScreenSharingFragment.enableAnnotations(true, mAnnotationsToolbar);
+
+    }
+
+    //Private methods
 
     private void initPreviewFragment() {
         mPreviewFragment = new PreviewControlFragment();
@@ -497,7 +531,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private void initScreenSharingFragment() {
         mScreenSharingFragment = ScreenSharingFragment.newInstance(mComm.getSession(), OpenTokConfig.API_KEY);
-        mScreenSharingFragment.enableAnnotations(true, mAnnotationsToolbar);
+        //mScreenSharingFragment.enableAnnotations(true, mAnnotationsToolbar);
         mScreenSharingFragment.setListener(this);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.screensharing_fragment_container, mScreenSharingFragment).commit();
@@ -575,6 +609,12 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
     @Override
+    public void onAnnotationsRemoteViewReady(AnnotationsView view) {
+        Log.i(LOG_TAG, "onAnnotationsRemoteViewReady ");
+        view.setAnnotationsListener(this);
+    }
+
+    @Override
     public void onClosed() {
         onScreenSharing();
     }
@@ -587,7 +627,8 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
             filename = sdf.format(date);
             try {
-                String path = Environment.getExternalStorageDirectory().toString() + "/PICTURES/Screenshots/";
+                //String path = Environment.getExternalStorageDirectory().toString() + "/PICTURES/Screenshots/";
+                String path = Environment.getExternalStorageDirectory().toString();
                 OutputStream fOut = null;
                 File file = new File(path, filename + ".jpg");
                 fOut = new FileOutputStream(file);
