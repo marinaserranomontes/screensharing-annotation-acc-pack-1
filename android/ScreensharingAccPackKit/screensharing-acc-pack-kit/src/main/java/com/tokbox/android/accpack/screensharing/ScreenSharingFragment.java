@@ -285,7 +285,7 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
     * Stop sharing the screen.
     */
     public void stop(){
-        addLogEvent(OpenTokConfig.LOG_ACTION_STOP, OpenTokConfig.LOG_VARIATION_ATTEMPT);
+        addLogEvent(OpenTokConfig.LOG_ACTION_END, OpenTokConfig.LOG_VARIATION_ATTEMPT);
         stopScreenCapture();
         if (mScreenPublisher != null) {
             mSession.unpublish(mScreenPublisher);
@@ -591,14 +591,15 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         checkAnnotations();
         isStarted = true;
 
-        if ( mAnnotationsView == null ){
-            mAnnotationsView = new AnnotationsView(getContext(), mSession, mApiKey, true, AnnotationsView.ViewType.PublisherView);
-            mAnnotationsView.attachToolbar(mAnnotationsToolbar);
-            mAnnotationsView.setVideoRenderer(mRenderer); //to use screencapture
+        if ( isAnnotationsEnabled ) {
+            if (mAnnotationsView == null) {
+                mAnnotationsView = new AnnotationsView(getContext(), mSession, mApiKey, true, AnnotationsView.ViewType.PublisherView);
+                mAnnotationsView.attachToolbar(mAnnotationsToolbar);
+                mAnnotationsView.setVideoRenderer(mRenderer); //to use screencapture
+            }
+            onAnnotationsViewReady(mAnnotationsView);
+            mScreen.addView(mAnnotationsView);
         }
-        onAnnotationsViewReady(mAnnotationsView);
-        mScreen.addView(mAnnotationsView);
-
         screensharingBar = new ScreenSharingBar(getContext(), this);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
@@ -658,7 +659,7 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
     public void onError(PublisherKit publisherKit, OpentokError opentokError) {
         onScreenSharingError(ERROR + ": "+opentokError.getMessage());
         if (isStarted()){
-            addLogEvent(OpenTokConfig.LOG_ACTION_STOP, OpenTokConfig.LOG_VARIATION_ERROR);
+            addLogEvent(OpenTokConfig.LOG_ACTION_END, OpenTokConfig.LOG_VARIATION_ERROR);
         }
         else {
             addLogEvent(OpenTokConfig.LOG_ACTION_START, OpenTokConfig.LOG_VARIATION_ERROR);

@@ -515,7 +515,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private void initScreenSharingFragment() {
         mScreenSharingFragment = ScreenSharingFragment.newInstance(mComm.getSession(), OpenTokConfig.API_KEY);
-        //mScreenSharingFragment.enableAnnotations(true, mAnnotationsToolbar);
+        mScreenSharingFragment.enableAnnotations(true, mAnnotationsToolbar);
         mScreenSharingFragment.setListener(this);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.screensharing_fragment_container, mScreenSharingFragment).commit();
