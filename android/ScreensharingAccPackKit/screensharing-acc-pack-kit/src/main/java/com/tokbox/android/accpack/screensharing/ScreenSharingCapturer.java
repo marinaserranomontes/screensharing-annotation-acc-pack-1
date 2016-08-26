@@ -4,15 +4,22 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.ImageFormat;
+import android.graphics.YuvImage;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 
 import com.opentok.android.BaseVideoCapturer;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.locks.Lock;
@@ -37,9 +44,20 @@ public class ScreenSharingCapturer extends BaseVideoCapturer{
 
     private ImageReader mImageReader;
 
-    Bitmap lastBmp;
+    private ByteBuffer ybuffer;
+    private ByteBuffer ubuffer;
+    private ByteBuffer vbuffer;
 
-    private final Lock mImageReaderLock = new ReentrantLock(true /*fair*/);
+    private int yPixelStride;
+    private int uPixelStride;
+    private int vPixelStride;
+
+    private int yRowStride;
+    private int uRowStride;
+    private int vRowStride;
+
+    private int orientation = 0;
+    private boolean mirrored = false;
 
     private Runnable newFrame = new Runnable() {
         @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -47,22 +65,27 @@ public class ScreenSharingCapturer extends BaseVideoCapturer{
         public void run() {
             if (capturing) {
             frame = null;
-                  if (frame == null || width != bmp.getWidth()
-                        || height != bmp.getHeight()){
-                    if (lastBmp != null){
-                        width = lastBmp.getWidth();
-                        height = lastBmp.getHeight();
-                        frame = new int[width * height];
+                frame = null;
+                if (frame == null ) {
 
-                        lastBmp.getPixels(frame, 0, width, 0, 0, width, height);
-                        provideIntArrayFrame(frame, ARGB, width, height, 0, false);
+                        provideBufferFramePlanar(ybuffer,
+                                ubuffer,
+                                vbuffer,
+                                yPixelStride,
+                                yRowStride,
+                                uPixelStride,
+                                uRowStride,
+                                vPixelStride,
+                                vRowStride,
+                                width,
+                                height,
+                                0,
+                                false);
                     }
 
                     mHandler.postDelayed(newFrame, 1000 / fps);
 
-
                 }
-            }
         }
     };
 
@@ -139,44 +162,36 @@ public class ScreenSharingCapturer extends BaseVideoCapturer{
     @TargetApi(Build.VERSION_CODES.KITKAT)
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
 
-        @Override
-        public void onImageAvailable(ImageReader reader) {
+    @Override
+    public void onImageAvailable(ImageReader reader) {
+        Log.i(LOG_TAG, "in OnImageAvailable");
+        FileOutputStream fos = null;
+        Image img = null;
+            //get the image
+            Image image = reader.acquireNextImage();
 
-                Image mImage = null;
-                FileOutputStream fos = null;
+            ybuffer = image.getPlanes()[0].getBuffer();
+            ubuffer = image.getPlanes()[1].getBuffer();
+            vbuffer= image.getPlanes()[2].getBuffer();
 
-                try {
-                    mImage = mImageReader.acquireLatestImage();
+            yPixelStride = image.getPlanes()[0].getPixelStride();
+            uPixelStride = image.getPlanes()[1].getPixelStride();;
+            vPixelStride = image.getPlanes()[2].getPixelStride();;
 
-                    if (mImage != null) {
-                        int imgWidth = mImage.getWidth();
-                        int imgHeight = mImage.getHeight();
+            yRowStride = image.getPlanes()[0].getRowStride();
+            uRowStride = image.getPlanes()[1].getRowStride();
+            vRowStride = image.getPlanes()[2].getRowStride();
 
-                        Image.Plane[] planes = mImage.getPlanes();
-                        ByteBuffer buffer = planes[0].getBuffer();
-                        int pixelStride = planes[0].getPixelStride();
-                        int rowStride = planes[0].getRowStride();
-                        int rowPadding = rowStride - pixelStride * imgWidth;
+            width = image.getWidth();
+            height = image.getHeight();
 
-                        Buffer buffer2 = planes[0].getBuffer().rewind();
-                        bmp = Bitmap.createBitmap(imgWidth + rowPadding / pixelStride, imgHeight, Bitmap.Config.ARGB_8888);
+        Log.i("MARINAS", "IMAGE GET WIDTH: "+width);
+        Log.i("MARINAS", "IMAGE GET WIDTH: "+height);
 
-                        bmp.copyPixelsFromBuffer(buffer2);
-                        lastBmp = bmp.copy(bmp.getConfig(), true);
-                    }
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (bmp != null) {
-                        bmp.recycle();
-                    }
-
-                    if (mImage != null) {
-                        mImage.close();
-                    }
-                }
+        image.close();
 
         }
+
     }
 }

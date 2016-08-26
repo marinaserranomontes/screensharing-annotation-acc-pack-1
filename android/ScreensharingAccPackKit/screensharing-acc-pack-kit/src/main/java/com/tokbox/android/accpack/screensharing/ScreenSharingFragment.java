@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
@@ -463,8 +464,11 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         mWidth = size.x;
         mHeight = size.y;
 
+        Log.i("MARINAS", "GET WIDTH: "+mWidth);
+        Log.i("MARINAS", "GET WIDTH: "+mHeight);
+
         // start capture reader
-        mImageReader = ImageReader.newInstance(mWidth, mHeight, PixelFormat.RGBA_8888, 2);
+        mImageReader = ImageReader.newInstance(mWidth, mHeight, ImageFormat.YUV_420_888, 2);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay("ScreenCapture", mWidth, mHeight, mDensity, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
 
         size.set(mWidth, mHeight);
@@ -586,6 +590,10 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
 
     @Override
     public void onStreamCreated(PublisherKit publisherKit, Stream stream) {
+
+        Log.i("MARINAS", "ScreenPublisher STREAM width: "+stream.getVideoWidth());
+        Log.i("MARINAS", "ScreenPublisher STREAM height: "+stream.getVideoHeight());
+
         enableScreensharingBar(true);
         onScreenSharingStarted();
         checkAnnotations();
