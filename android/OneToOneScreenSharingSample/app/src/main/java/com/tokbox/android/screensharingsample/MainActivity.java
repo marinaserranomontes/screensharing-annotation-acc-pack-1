@@ -460,12 +460,12 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                             .getDisplayMetrics().heightPixels);
                     mRemoteViewContainer.addView(mComm.getRemoteScreenView(), layoutParams);
 
-                    if ( !remoteAnnotations ) {
-                        //enable annotations
-                        mScreenSharingFragment.enableRemoteAnnotations(true,  mRemmoteAnnotationsToolbar,mRemoteViewContainer, mComm.getRemote());
-                        mRemoteViewContainer.addView(mRemmoteAnnotationsToolbar);
-                        remoteAnnotations = true;
-                    }
+                    //if ( !remoteAnnotations ) {
+                    //enable annotations
+                    mScreenSharingFragment.enableRemoteAnnotations(true,  mRemmoteAnnotationsToolbar,mRemoteViewContainer, mComm.getRemote());
+                    mRemoteViewContainer.addView(mRemmoteAnnotationsToolbar);
+                    remoteAnnotations = true;
+                    // }
                 }
             } else {
                 if (mComm.isStarted()) {
@@ -475,7 +475,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                     //clear views
                     onAudioOnly(false);
                     mRemoteViewContainer.removeAllViews();
-                   // mRemoteViewContainer.removeView(remoteView);
+                    // mRemoteViewContainer.removeView(remoteView);
                     mRemoteViewContainer.setClickable(false);
                 } else {
                     if (mComm.getRemoteVideoView() != null) {
@@ -647,3 +647,4 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
 }
+

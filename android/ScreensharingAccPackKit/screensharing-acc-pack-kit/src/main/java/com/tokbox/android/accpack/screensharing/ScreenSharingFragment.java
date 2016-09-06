@@ -30,48 +30,6 @@ import com.opentok.android.OpentokError;
 import com.opentok.android.PublisherKit;
 import com.opentok.android.Session;
 import com.opentok.android.Stream;
-import com.tokbox.android.accpack.AccPackSession;
-
-
-import com.tokbox.android.annotations.AnnotationsToolbar;
-import com.tokbox.android.annotations.AnnotationsView;
-import com.tokbox.android.accpack.screensharing.config.OpenTokConfig;
-import com.tokbox.android.annotations.utils.AnnotationsVideoRenderer;
-import com.tokbox.android.logging.OTKAnalytics;
-import com.tokbox.android.logging.OTKAnalyticsData;
-
-import java.util.UUID;
-
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.PixelFormat;
-import android.graphics.Point;
-import android.hardware.display.DisplayManager;
-import android.hardware.display.VirtualDisplay;
-import android.media.ImageReader;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.content.Context;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.Display;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
-
-import com.opentok.android.Connection;
-import com.opentok.android.OpentokError;
-import com.opentok.android.PublisherKit;
-import com.opentok.android.Session;
-import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.tokbox.android.accpack.AccPackSession;
 
