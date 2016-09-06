@@ -2,10 +2,15 @@ package com.tokbox.android.accpack.screensharing;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Presentation;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.ImageReader;
@@ -20,10 +25,13 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.opentok.android.Connection;
 import com.opentok.android.OpentokError;
@@ -41,6 +49,7 @@ import com.tokbox.android.annotations.utils.AnnotationsVideoRenderer;
 import com.tokbox.android.logging.OTKAnalytics;
 import com.tokbox.android.logging.OTKAnalyticsData;
 
+import java.util.Random;
 import java.util.UUID;
 
 
@@ -96,6 +105,8 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
 
     private OTKAnalyticsData mAnalyticsData;
     private OTKAnalytics mAnalytics;
+
+    private MyPresentation mPresentation = null;
 
 
     @Override
@@ -313,17 +324,17 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
     @Override
     public void onPause() {
         super.onPause();
-        if (isStarted) {
+     /*   if (isStarted) {
             stop();
-        }
+        }*/
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (isStarted) {
+       /* if (isStarted) {
             start();
-        }
+        }*/
     }
 
     @Override
@@ -415,20 +426,22 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         mDensity = metrics.densityDpi;
         Display mDisplay = getActivity().getWindowManager().getDefaultDisplay();
 
-        // get width and height
         Point size = new Point();
-        mDisplay.getSize(size);
+        mDisplay.getRealSize(size);
         mWidth = size.x;
         mHeight = size.y;
 
         // start capture reader
         mImageReader = ImageReader.newInstance(mWidth, mHeight, PixelFormat.RGBA_8888, 2);
-        mVirtualDisplay = mMediaProjection.createVirtualDisplay("ScreenCapture", mWidth, mHeight, mDensity, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mImageReader.getSurface(), null, null);
+        int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION;
+
+        mVirtualDisplay = mMediaProjection.createVirtualDisplay("ScreenCapture", mWidth, mHeight, mDensity, flags, mImageReader.getSurface(), null, null);
 
         size.set(mWidth, mHeight);
 
         //create ScreenCapturer
         ScreenSharingCapturer capturer = new ScreenSharingCapturer(getContext(), mScreen, mImageReader);
+
         mScreenPublisher = new ScreenPublisher(getContext(), "screenPublisher", isAudioEnabled, true, capturer);
         mScreenPublisher.setPublisherVideoType(PublisherKit.PublisherKitVideoType.PublisherKitVideoTypeScreen);
         mScreenPublisher.setPublisherListener(this);
@@ -544,10 +557,12 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
 
     @Override
     public void onStreamCreated(PublisherKit publisherKit, Stream stream) {
+
         enableScreensharingBar(true);
         onScreenSharingStarted();
         checkAnnotations();
         isStarted = true;
+
 
         if ( isAnnotationsEnabled ) {
             if (mAnnotationsView == null) {
@@ -562,6 +577,7 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
         mScreen.addView(screensharingBar, params);
+
 
     }
 
@@ -628,6 +644,129 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
     private void addLogEvent(String action, String variation){
         if ( mAnalytics!= null ) {
             mAnalytics.logEvent(action, variation);
+        }
+    }
+
+    MySurfaceView mySurfaceView;
+
+    class MySurfaceView extends SurfaceView implements Runnable{
+
+        Thread thread = null;
+        SurfaceHolder surfaceHolder;
+        volatile boolean running = false;
+
+        private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        Random random;
+
+        public MySurfaceView(Context context) {
+            super(context);
+            // TODO Auto-generated constructor stub
+            surfaceHolder = getHolder();
+            setZOrderOnTop(true);
+            surfaceHolder.setFormat(PixelFormat.TRANSLUCENT);
+            random = new Random();
+        }
+
+        public void onResumeMySurfaceView(){
+            running = true;
+            thread = new Thread(this);
+            thread.start();
+        }
+
+        public void onPauseMySurfaceView(){
+            boolean retry = true;
+            running = false;
+            while(retry){
+                try {
+                    thread.join();
+                    retry = false;
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            while(running){
+                if(surfaceHolder.getSurface().isValid()){
+                    Canvas canvas = surfaceHolder.lockCanvas();
+                    //... actual drawing on canvas
+
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setStrokeWidth(3);
+
+                    int w = canvas.getWidth();
+                    int h = canvas.getHeight();
+                    int x = random.nextInt(w-1);
+                    int y = random.nextInt(h-1);
+                    int r = random.nextInt(255);
+                    int g = random.nextInt(255);
+                    int b = random.nextInt(255);
+                    paint.setColor(0xff000000 + (r << 16) + (g << 8) + b);
+                    //canvas.drawPoint(x, y, paint);
+
+                    x = 50;
+                    y = 50;
+                    int sideLength = 200;
+
+                    // create a rectangle that we'll draw later
+                    Rect rectangle = new Rect(x, y, sideLength, sideLength);
+
+                    // create the Paint and set its color
+                    paint = new Paint();
+                    paint.setColor(Color.BLUE);
+                    canvas.drawRect(rectangle, paint);
+
+                    surfaceHolder.unlockCanvasAndPost(canvas);
+                }
+            }
+        }
+
+    }
+    private static void populate(View v, Display display)
+    {
+        DisplayMetrics metrics = new DisplayMetrics();
+        display.getMetrics(metrics);
+        float density = metrics.density;
+        TextView actual = (TextView) v.findViewById(R.id.actual);
+        if (actual != null)
+        {
+            actual.setText(String.format("%dx%d", metrics.widthPixels,
+                    metrics.heightPixels));
+        }
+        TextView df = (TextView) v.findViewById(R.id.density_factor);
+        if (df != null)
+        {
+            df.setText(String.format("%f", density));
+        }
+        TextView dp = (TextView) v.findViewById(R.id.device_pixels);
+        if (dp != null)
+        {
+            dp.setText(String.format("%dx%d",
+                    ((int) ((float) metrics.widthPixels / density)),
+                    ((int) ((float) metrics.heightPixels / density))));
+        }
+    }
+
+    public class MyPresentation extends Presentation
+    {
+
+        public MyPresentation(Context outerContext,
+                              Display display)
+        {
+            super(outerContext, display);
+        }
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState)
+        {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.presentation_layout);
+            populate(findViewById(R.id.main),
+                    getDisplay());
         }
     }
 }
