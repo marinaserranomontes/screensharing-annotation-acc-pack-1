@@ -79,10 +79,6 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
     private AnnotationsToolbar mAnnotationsToolbar;
     private AnnotationsToolbar mRemoteAnnotationsToolbar;
 
-    private RelativeLayout mScreensharingBar;
-    private View mScreensharingLeftView;
-    private View mScreensharingRightView;
-    private View mScreensharingBottomView;
     private ScreenSharingBar screensharingBar;
 
     private boolean isStarted = false;
@@ -348,12 +344,6 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.main_layout, container, false);
-
-        mScreensharingBar = (RelativeLayout) rootView.findViewById(R.id.screnesharing_bar);
-        mScreensharingLeftView = (View) rootView.findViewById(R.id.left_line);
-        mScreensharingRightView = (View) rootView.findViewById(R.id.right_line);
-        mScreensharingBottomView = (View) rootView.findViewById(R.id.bottom_line);
-
         mScreen = container;
 
         return rootView;
@@ -548,7 +538,6 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
     @Override
     public void onStreamCreated(PublisherKit publisherKit, Stream stream) {
 
-        enableScreensharingBar(true);
         onScreenSharingStarted();
         checkAnnotations();
         isStarted = true;
@@ -569,19 +558,6 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         mScreen.addView(screensharingBar, params);
 
 
-    }
-
-    private void enableScreensharingBar(boolean visible){
-        if (visible) {
-            mScreensharingBottomView.setVisibility(View.VISIBLE);
-            mScreensharingRightView.setVisibility(View.VISIBLE);
-            mScreensharingLeftView.setVisibility(View.VISIBLE);
-        }
-        else {
-            mScreensharingBottomView.setVisibility(View.GONE);
-            mScreensharingRightView.setVisibility(View.GONE);
-            mScreensharingLeftView.setVisibility(View.GONE);
-        }
     }
 
     private void checkAnnotations() {
@@ -612,7 +588,6 @@ public class ScreenSharingFragment extends Fragment implements AccPackSession.Se
         mScreenPublisher = null;
         mScreen.removeView(screensharingBar);
         mScreen.removeView(mAnnotationsView);
-        enableScreensharingBar(false);
         checkAnnotations();
         onScreenSharingStopped();
         onClosed();

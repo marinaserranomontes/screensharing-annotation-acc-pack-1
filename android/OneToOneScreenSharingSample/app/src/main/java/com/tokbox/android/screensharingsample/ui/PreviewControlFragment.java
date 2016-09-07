@@ -29,7 +29,8 @@ public class PreviewControlFragment extends Fragment {
     private ImageButton mAudioBtn;
     private ImageButton mVideoBtn;
     private ImageButton mCallBtn;
-    private ImageButton mScreenSharintBtn;
+    private ImageButton mScreenSharingBtn;
+    private ImageButton mAnnotationsBtn;
 
     private PreviewControlCallbacks mControlCallbacks = previewCallbacks;
 
@@ -42,6 +43,8 @@ public class PreviewControlFragment extends Fragment {
         public void onCall();
 
         public void onScreenSharing();
+
+        public void onAnnotations();
 
     }
 
@@ -57,6 +60,9 @@ public class PreviewControlFragment extends Fragment {
 
         @Override
         public void onScreenSharing() { }
+
+        @Override
+        public void onAnnotations() { }
 
     };
 
@@ -76,7 +82,11 @@ public class PreviewControlFragment extends Fragment {
                     break;
 
                 case R.id.screenSharing:
-                    updateTextChat();
+                    updateScreensharing();
+                    break;
+
+                case R.id.annotations:
+                    updateAnnotations();
                     break;
             }
         }
@@ -124,7 +134,8 @@ public class PreviewControlFragment extends Fragment {
         mAudioBtn = (ImageButton) rootView.findViewById(R.id.localAudio);
         mVideoBtn = (ImageButton) rootView.findViewById(R.id.localVideo);
         mCallBtn = (ImageButton) rootView.findViewById(R.id.call);
-        mScreenSharintBtn = (ImageButton) rootView.findViewById(R.id.screenSharing);
+        mScreenSharingBtn = (ImageButton) rootView.findViewById(R.id.screenSharing);
+        mAnnotationsBtn = (ImageButton) rootView.findViewById(R.id.annotations);
 
         mAudioBtn.setImageResource(mActivity.getComm().getLocalAudio()
                 ? R.drawable.mic_icon
@@ -180,8 +191,27 @@ public class PreviewControlFragment extends Fragment {
         mControlCallbacks.onCall();
     }
 
-    public void updateTextChat() {
+    public void updateScreensharing() {
+        mVideoBtn.setOnClickListener(!mActivity.isScreensharing()
+                ? null
+                : mBtnClickListener);
+
+        mAnnotationsBtn.setOnClickListener(!mActivity.isScreensharing()
+                ? mBtnClickListener
+                : null);
+
+        mScreenSharingBtn.setBackgroundResource(!mActivity.isScreensharing()
+                ? R.drawable.bckg_icon_selected
+                : R.drawable.bckg_icon);
+
         mControlCallbacks.onScreenSharing();
+    }
+
+    public void updateAnnotations() {
+        mAnnotationsBtn.setBackgroundResource(!mActivity.isAnnotations()
+                ? R.drawable.bckg_icon_selected
+                : R.drawable.bckg_icon);
+        mControlCallbacks.onAnnotations();
     }
 
     public void setEnabled(boolean enabled) {
@@ -189,13 +219,13 @@ public class PreviewControlFragment extends Fragment {
             if (enabled) {
                 mAudioBtn.setOnClickListener(mBtnClickListener);
                 mVideoBtn.setOnClickListener(mBtnClickListener);
-                mScreenSharintBtn.setOnClickListener(mBtnClickListener);
+                mScreenSharingBtn.setOnClickListener(mBtnClickListener);
             } else {
                 mAudioBtn.setOnClickListener(null);
                 mVideoBtn.setOnClickListener(null);
                 mAudioBtn.setImageResource(R.drawable.mic_icon);
                 mVideoBtn.setImageResource(R.drawable.video_icon);
-                mScreenSharintBtn.setOnClickListener(null);
+                mScreenSharingBtn.setOnClickListener(null);
             }
         }
     }

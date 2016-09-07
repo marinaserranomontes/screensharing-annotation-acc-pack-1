@@ -92,6 +92,9 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     private boolean screenshot;
     private boolean remoteAnnotations = false;
 
+    private boolean isScreensharing = false;
+    private boolean isAnnotations = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(LOG_TAG, "onCreate");
@@ -321,6 +324,14 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         }
     }
 
+    public boolean isScreensharing() {
+        return isScreensharing;
+    }
+
+    public boolean isAnnotations() {
+        return isAnnotations;
+    }
+
     @Override
     public void onScreenSharing() {
         if (mScreenSharingFragment.isStarted()) {
@@ -328,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             mScreenSharingFragment.stop();
             showAVCall(true);
             mComm.start(); //restart the av call
+            isScreensharing = false;
         }
 
         if (mScreenSharingFragment != null) {
@@ -335,7 +347,20 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 showAVCall(false);
                 mComm.end(); //stop the av call
                 mScreenSharingFragment.start();
+                isScreensharing = true;
             }
+        }
+    }
+
+    @Override
+    public void onAnnotations() {
+        if (!isAnnotations) {
+            mAnnotationsToolbar.setVisibility(View.VISIBLE);
+            isAnnotations = true;
+        }
+        else {
+            mAnnotationsToolbar.setVisibility(View.GONE);
+            isAnnotations = false;
         }
     }
 
@@ -542,7 +567,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private void showAVCall(boolean show) {
         if (show) {
-            mActionBarContainer.setVisibility(View.VISIBLE);
+            //mActionBarContainer.setVisibility(View.VISIBLE);
             mPreviewViewContainer.setVisibility(View.VISIBLE);
             mRemoteViewContainer.setVisibility(View.VISIBLE);
             mCameraFragmentContainer.setVisibility(View.VISIBLE);
@@ -551,7 +576,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             menu3.setVisibility(View.GONE);
             menu4.setVisibility(View.GONE);
         } else {
-            mActionBarContainer.setVisibility(View.GONE);
+            //mActionBarContainer.setVisibility(View.GONE);
             mPreviewViewContainer.setVisibility(View.GONE);
             mRemoteViewContainer.setVisibility(View.GONE);
             mCameraFragmentContainer.setVisibility(View.GONE);
