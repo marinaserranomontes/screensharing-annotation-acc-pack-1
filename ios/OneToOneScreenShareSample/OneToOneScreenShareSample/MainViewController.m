@@ -209,7 +209,7 @@
 - (void)startScreenShare {
     [self.oneToOneCommunicator disconnect];
     [SVProgressHUD show];
-    [self.screenSharer connectWithView:self.mainView.shareView handler:^(ScreenShareSignal signal, NSError *error) {
+    [self.screenSharer connectWithView:self.mainView.shareView handler:^(OTScreenShareSignal signal, NSError *error) {
         
         [SVProgressHUD dismiss];
         if (!error) {
@@ -236,17 +236,17 @@
     }];
 }
 
-- (void)handleScreenShareSignal:(ScreenShareSignal)signal {
+- (void)handleScreenShareSignal:(OTScreenShareSignal)signal {
     
     switch (signal) {
-        case ScreenShareSignalSessionDidConnect: {
+        case OTScreenShareSignalSessionDidConnect: {
             [self.mainView addScreenShareViewWithContentView:self.customSharedContent];
             [self.mainView toggleAnnotationToolBar];
             [self.mainView updateControlButtonsForScreenShare];
             [self.mainView showScreenShareNotificationBar:YES];
             break;
         }
-        case ScreenShareSignalSessionDidDisconnect: {
+        case OTScreenShareSignalSessionDidDisconnect: {
             [self.mainView removeScreenShareView];
             [self.mainView removeAnnotationToolBar];
             [self.customSharedContent removeFromSuperview];
@@ -254,19 +254,19 @@
             [self.mainView showScreenShareNotificationBar:NO];
             break;
         }
-        case ScreenShareSignalSessionDidFail:{
+        case OTScreenShareSignalSessionDidFail:{
             [SVProgressHUD dismiss];
             break;
         }
-        case ScreenShareSignalPublisherDidFail:{
+        case OTScreenShareSignalPublisherDidFail:{
             [SVProgressHUD showErrorWithStatus:@"Problem when publishing"];
             break;
         }
-        case ScreenShareSignalSubscriberDidFail:{
+        case OTScreenShareSignalSubscriberDidFail:{
             [SVProgressHUD showErrorWithStatus:@"Problem when subscribing"];
             break;
         }
-        case ScreenShareSignalSubscriberVideoDisableWarning:{
+        case OTScreenShareSignalSubscriberVideoDisableWarning:{
             [SVProgressHUD showErrorWithStatus:@"Network connection is unstable."];
             break;
         }
