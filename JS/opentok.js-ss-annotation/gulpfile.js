@@ -33,7 +33,7 @@ gulp.task('js-dev', function () {
 
 gulp.task('css', function () {
   return gulp.src('css/*.css')
-    .pipe(concatCss('theme.css'))
+    .pipe(concatCss('opentok-style.css'))
     .pipe(gulp.dest('dist/'));
 });
 
