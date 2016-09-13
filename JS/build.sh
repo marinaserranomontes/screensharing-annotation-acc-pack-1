@@ -26,6 +26,7 @@ function copyDependencies()
 	cp -v $NPM_MODULES/opentok-annotation/dist/opentok-annotation.js $SRC_PATH
 	cp -v $NPM_MODULES/opentok-screen-sharing/dist/opentok-screen-sharing.js $SRC_PATH
 	cp -v $NPM_MODULES/opentok-solutions-logging/dist/opentok-solutions-logging.js $SRC_PATH
+	cp -v $NPM_MODULES/opentok-solutions-css/style.css $CSS_PATH
 }
 
 if [[ -d opentok.js-ss-annotation ]]
@@ -38,6 +39,7 @@ then
         gulp zip
 	cd dist
   cp -v screenshare-annotation-acc-pack.js $PUBLIC/js/components/screenshare-annotation-acc-pack.js
+	cp -v opentok-style.css $PUBLIC/css/
 else
 	echo "Please run this script from 'js-screensharing-annotation'."
 	exit 1
