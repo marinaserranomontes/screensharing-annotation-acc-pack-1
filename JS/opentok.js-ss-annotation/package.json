@@ -44,6 +44,7 @@
     "opentok-annotation": "*",
     "opentok-one-to-one-communication": "*",
     "opentok-screen-sharing": "*",
+    "opentok-solutions-css": "*",
     "opentok-solutions-logging": "*",
     "rimraf": "^2.4.3",
     "sinon": "^1.17.0",
