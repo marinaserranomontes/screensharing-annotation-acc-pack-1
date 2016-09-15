@@ -11,20 +11,18 @@ This section shows you how to prepare, build, and run the sample application.
 1. Clone [the OpenTok Screensharing with Annotations Sample App repository](https://github.com/opentok/screensharing-annotation-acc-pack/tree/master/android) from GitHub.
 2. Start Android Studio.
 3. In the **Quick Start** panel, click **Open an existing Android Studio Project**.
-4. Navigate to the **android** folder, select the **SampleApp** folder, and click **Choose**.
+4. Navigate to the **android** folder, select the **OneToOneScreenSharingSample** folder, and click **Choose**.
 
 
-### Adding the Sample library
+### Adding the Screensharing library
 
-Use one of the following options to install the OpenTok Screensharing with Annotations Sample library:
+Use one of the following options to install the OpenTok Screensharing with Annotations Sample library, which includes the annotations dependencies:
 
   - [Using the repository](#using-the-repository)
   - [Using Maven](#using-maven)
   - [Downloading and Installing the AAR File](#downloading-and-installing-the-aar-file)
 
-**NOTE**:
-  - The OpenTok Screensharing Sample App includes the [TokBox Common Accelerator Session Pack](https://github.com/opentok/acc-pack-common).
-  - The OpenTok Screensharing with Annotations Sample includes the [OpenTok Annotations Kit] (https://github.com/opentok/annotation-acc-pack).
+**NOTE**: The OpenTok Screensharing Sample App uses the [TokBox Common Accelerator Session Pack](https://github.com/opentok/acc-pack-common), the [OpenTok Screensharing Kit](https://github.com/opentok/screen-sharing-acc-pack), and the [OpenTok Annotations Kit] (https://github.com/opentok/annotation-acc-pack).
 
 #### Using the repository
 
@@ -51,7 +49,7 @@ compile project(':screensharing-acc-pack-kit')
 
 #### Downloading and Installing the AAR File
 
-1.  Download the [Screensharing with Annotations Sample zip file](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/android/opentok-screensharing-annotations-2.0.0.zip).
+1.  Download the [Screensharing with Annotations Sample Library AAR](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/android/opentok-screensharing-annotations-2.0.0.zip).
 1. Extract the **opentok-screensharing-annotations-2.0.0.aar** file.
 1. Right-click the app name, select **Open Module Settings**, and click **+**.
 1. Select **Import .JAR/.AAR Package** and click  **Next**.
@@ -82,7 +80,7 @@ Configure the sample app code. Then, build and run the app.
 
 ### Optional: Manage Annotations from Other Clients
 
-By default, your app receives annotations from other clients that have the same session ID. This feature is controlled by the following line of code open **OpenTokConfig.java**.
+By default, your app subscribes to its own stream. This feature is controlled by the following line of code open **OpenTokConfig.java**.
 
 ```java
 public static final boolean SUBSCRIBE_TO_SELF = false;
@@ -177,7 +175,7 @@ public interface ScreenSharingListener {
 
 #### Initialization methods
 
-The following `ScreenSharingFragment` methods are used to initialize the app and provide basic information determining the behavior of the screen sharing with annotations functionality.
+The following `ScreenSharingFragment` methods are the main methods of the ScreensharingKit and provide basic information determining the behavior of the screen sharing with annotations functionality. They are used for such purposes as starting and stopping screensharing, as well as enabling and disabling publisher and subscriber annotations.
 
 | Feature        | Methods  |
 | ------------- | ------------- |
@@ -266,3 +264,4 @@ To develop a screen sharing with annotations app:
 
 1. Install [Android Studio](http://developer.android.com/intl/es/sdk/index.html).
 2. Review the [OpenTok Android SDK Requirements](https://tokbox.com/developer/sdks/android/#developerandclientrequirements).
+3. The device must support Android Lollipop and later.
