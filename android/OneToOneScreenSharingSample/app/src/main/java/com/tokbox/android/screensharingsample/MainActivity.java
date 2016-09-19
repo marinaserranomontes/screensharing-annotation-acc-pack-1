@@ -2,7 +2,9 @@ package com.tokbox.android.screensharingsample;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -12,6 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -22,7 +25,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TableLayout;
@@ -49,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.SYSTEM_ALERT_WINDOW};
+    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW};
     private final int permsRequestCode = 200;
 
     //OpenTok calls
@@ -84,14 +86,20 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     private TableLayout menu4;
 
     private AnnotationsToolbar mAnnotationsToolbar;
-
     private TextView mCallToolbar;
+    private Runnable mCallTolbarAnimation;
 
     private boolean screenshot;
     private boolean remoteAnnotations = false;
 
     private boolean isScreensharing = false;
     private boolean isAnnotations = false;
+
+    private int mOriginalOrientation = -1;
+
+    private boolean mVideoPermission = false;
+    private boolean mAudioPermission  = false;
+    private boolean mSystemAlertPermission = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,7 +155,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         mProgressDialog.setTitle("Please wait");
         mProgressDialog.setMessage("Connecting...");
         mProgressDialog.show();
-
     }
 
     @Override
@@ -251,15 +258,36 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
     @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions,
+    public void onRequestPermissionsResult(final int permsRequestCode, final String[] permissions,
                                            int[] grantResults) {
         switch (permsRequestCode) {
             case 200:
-                boolean video = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                boolean audio = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-                boolean readExternalStorage = grantResults[2] == PackageManager.PERMISSION_GRANTED;
-                boolean writeExternalStorage = grantResults[3] == PackageManager.PERMISSION_GRANTED;
-                boolean systemAlertWindow = grantResults[4] == PackageManager.PERMISSION_GRANTED;
+                mVideoPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                mAudioPermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                mSystemAlertPermission = grantResults[2] == PackageManager.PERMISSION_GRANTED;
+
+                if ( !mVideoPermission || !mAudioPermission || !mSystemAlertPermission ){
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle(getResources().getString(R.string.permissions_denied_title));
+                    builder.setMessage(getResources().getString(R.string.alert_permissions_denied));
+                    builder.setPositiveButton("I'M SURE", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.setNegativeButton("RE-TRY", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                requestPermissions(permissions, permsRequestCode);
+                            }
+                        }
+                    });
+                    builder.show();
+                }
+
                 break;
         }
     }
@@ -309,9 +337,17 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             mComm.end();
             cleanViewsAndControls();
         } else {
-            mComm.start();
-            if (mPreviewFragment != null) {
-                mPreviewFragment.setEnabled(true);
+            if ( isScreensharing() ){
+                mScreenSharingFragment.stop();
+                showAVCall(true);
+                isScreensharing = false;
+                cleanViewsAndControls();
+            }
+            else {
+                mComm.start();
+                if (mPreviewFragment != null) {
+                    mPreviewFragment.setEnabled(true);
+                }
             }
         }
     }
@@ -330,7 +366,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             Log.i(LOG_TAG, "Screensharing stop");
             mScreenSharingFragment.stop();
             showAVCall(true);
-            mPreviewFragment.restartScreensharing(); //restart screensharing UI
             mComm.start(); //restart the av call
             isScreensharing = false;
         }
@@ -347,18 +382,8 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     @Override
     public void onAnnotations() {
-        if (!isAnnotations) {
-            mAnnotationsToolbar.setVisibility(View.VISIBLE);
-            isAnnotations = true;
-            mCallToolbar.setVisibility(View.VISIBLE);
-            mActionBarContainer.setVisibility(View.GONE);
-        }
-        else {
-            mAnnotationsToolbar.setVisibility(View.GONE);
-            isAnnotations = false;
-            mCallToolbar.setVisibility(View.GONE);
-            mActionBarContainer.setVisibility(View.VISIBLE);
-        }
+
+        showAnnotationsToolbar(!isAnnotations);
     }
 
     //Audio remote button event
@@ -388,6 +413,10 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     public void onCallToolbar(View view){
         restartAnnotations();
         isAnnotations = false;
+
+        showAnnotationsToolbar(false);
+        startCallToolbarAnimation(true);
+
     }
 
     //OneToOneCommunicator listener events
@@ -487,13 +516,15 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                             .getDisplayMetrics().heightPixels);
                     mRemoteViewContainer.addView(mComm.getRemoteScreenView(), layoutParams);
 
-                    mScreenSharingFragment.enableRemoteAnnotations(true,  mAnnotationsToolbar,mRemoteViewContainer, mComm.getRemote());
+                    mScreenSharingFragment.enableRemoteAnnotations(true, mAnnotationsToolbar, mRemoteViewContainer, mComm.getRemote());
                     remoteAnnotations = true;
                     mPreviewFragment.enableAnnotations(true);
+
+                    if (mComm.getRemoteVideoSize().height < mComm.getRemoteVideoSize().width){
+                        checkOrientation(); //force landscape mode
+                    }
                 }
             } else {
-                restartAnnotations();
-
                 if (mComm.isStarted()) {
                     onPreviewReady(mComm.getPreviewView()); //main preview view
                 }
@@ -502,9 +533,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                     onAudioOnly(false);
                     mRemoteViewContainer.removeAllViews();
                     mRemoteViewContainer.setClickable(false);
-                    mPreviewFragment.enableAnnotations(false);
-
-                 } else {
+                } else {
                     if (mComm.getRemoteVideoView() != null) {
                         //show remote view
                         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
@@ -522,7 +551,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
     //Private methods
-
     private void initPreviewFragment() {
         mPreviewFragment = new PreviewControlFragment();
         getSupportFragmentManager().beginTransaction()
@@ -549,6 +577,28 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 .add(R.id.screensharing_fragment_container, mScreenSharingFragment).commit();
     }
 
+
+    private void checkOrientation(){
+        int ot = getResources().getConfiguration().orientation;
+        if ( mOriginalOrientation == -1 ){
+            mOriginalOrientation = ot;
+        }
+
+        if (ot != Configuration.ORIENTATION_LANDSCAPE ){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+    }
+
+    private void restartOrientation(){
+        if ( mOriginalOrientation == 1 ){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+        else {
+            if ( mOriginalOrientation == 2 ) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            }
+        }
+    }
     //Audio local button event
     @Override
     public void onDisableLocalAudio(boolean audio) {
@@ -577,12 +627,46 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             menu2.setVisibility(View.GONE);
             menu3.setVisibility(View.GONE);
             menu4.setVisibility(View.GONE);
-            mAnnotationsToolbar.setVisibility(View.GONE);
-            mCallToolbar.setVisibility(View.GONE);
+            showAnnotationsToolbar(false);
         } else {
             mPreviewViewContainer.setVisibility(View.GONE);
             mRemoteViewContainer.setVisibility(View.GONE);
             mCameraFragmentContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private void showAnnotationsToolbar(boolean show){
+        if ( show ){
+            mAnnotationsToolbar.setVisibility(View.VISIBLE);
+            mActionBarContainer.setVisibility(View.GONE);
+            mCallToolbar.setVisibility(View.VISIBLE);
+            startCallToolbarAnimation(true);
+            isAnnotations = true;
+        }
+        else {
+            mAnnotationsToolbar.setVisibility(View.GONE);
+            mActionBarContainer.setVisibility(View.VISIBLE);
+            mCallToolbar.setVisibility(View.GONE);
+            isAnnotations = false;
+            startCallToolbarAnimation(false);
+        }
+    }
+
+    private void startCallToolbarAnimation( boolean start ){
+        if ( start ){
+            mCallTolbarAnimation = new Runnable() {
+                @Override
+                public void run() {
+                    mAnnotationsToolbar.setVisibility(View.VISIBLE);
+                    isAnnotations = true;
+                    mCallToolbar.setVisibility(View.VISIBLE);
+                    mActionBarContainer.setVisibility(View.GONE);
+                }
+            };
+            mCallToolbar.postDelayed(mCallTolbarAnimation, 3000);
+        }
+        else {
+            mCallToolbar.removeCallbacks(mCallTolbarAnimation);
         }
     }
 
@@ -624,11 +708,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     public void onAnnotationsRemoteViewReady(AnnotationsView view) {
         Log.i(LOG_TAG, "onAnnotationsRemoteViewReady ");
         view.setAnnotationsListener(this);
-    }
-
-    @Override
-    public void onClosed() {
-        onScreenSharing();
     }
 
     public void saveScreencapture(Bitmap bmp) {
@@ -675,11 +754,9 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
     private void restartAnnotations(){
-        mCallToolbar.setVisibility(View.GONE);
-        mAnnotationsToolbar.setVisibility(View.GONE);
-        mActionBarContainer.setVisibility(View.VISIBLE);
-        mPreviewFragment.restartAnnotations();
-
+        startCallToolbarAnimation(false);
+        showAnnotationsToolbar(false);
+        restartOrientation();
     }
 }
 

@@ -127,7 +127,6 @@ public class PreviewControlFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.i(LOGTAG, "OnCreate PreviewControlFragment");
-
         rootView = inflater.inflate(R.layout.preview_actionbar_fragment, container, false);
 
         mContainer = (RelativeLayout) this.mActivity.findViewById(R.id.actionbar_preview_fragment_container);
@@ -200,6 +199,10 @@ public class PreviewControlFragment extends Fragment {
                 ? mBtnClickListener
                 : null);
 
+        mAnnotationsBtn.setBackgroundResource(!mActivity.isScreensharing()
+                ? R.drawable.bckg_icon_selected
+                : R.drawable.bckg_icon);
+
         mScreenSharingBtn.setBackgroundResource(!mActivity.isScreensharing()
                 ? R.drawable.bckg_icon_selected
                 : R.drawable.bckg_icon);
@@ -218,12 +221,16 @@ public class PreviewControlFragment extends Fragment {
                 mAudioBtn.setOnClickListener(mBtnClickListener);
                 mVideoBtn.setOnClickListener(mBtnClickListener);
                 mScreenSharingBtn.setOnClickListener(mBtnClickListener);
+                if ( mActivity.getComm().getRemoteScreenView() != null ){
+                    enableAnnotations(true);
+                }
             } else {
                 mAudioBtn.setOnClickListener(null);
                 mVideoBtn.setOnClickListener(null);
                 mAudioBtn.setImageResource(R.drawable.mic_icon);
                 mVideoBtn.setImageResource(R.drawable.video_icon);
                 mScreenSharingBtn.setOnClickListener(null);
+                mAnnotationsBtn.setOnClickListener(null);
             }
         }
     }
@@ -236,21 +243,20 @@ public class PreviewControlFragment extends Fragment {
         mAnnotationsBtn.setBackgroundResource(R.drawable.bckg_icon);
     }
 
-    public void restartAnnotations(){
-        mAnnotationsBtn.setBackgroundResource(!mActivity.isAnnotations()
-                ? R.drawable.bckg_icon_selected
-                : R.drawable.bckg_icon);
+    private void restartAnnotations(){
+        if ( mAnnotationsBtn != null) {
+            mAnnotationsBtn.setBackgroundResource(!mActivity.isAnnotations()
+                    ? R.drawable.bckg_icon_selected
+                    : R.drawable.bckg_icon);
+        }
     }
+
     public void enableAnnotations(boolean enable){
-        mAnnotationsBtn.setOnClickListener(enable
-                ? mBtnClickListener
-                : null);
-
+        if ( mAnnotationsBtn != null) {
+            mAnnotationsBtn.setOnClickListener(enable
+                    ? mBtnClickListener
+                    : null);
+        }
     }
-    public void restartScreensharing(){
-        mScreenSharingBtn.setBackgroundResource(!mActivity.isScreensharing()
-                ? R.drawable.bckg_icon_selected
-                : R.drawable.bckg_icon);
 
-    }
 }
