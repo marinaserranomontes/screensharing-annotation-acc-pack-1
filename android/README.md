@@ -26,9 +26,9 @@ Use one of the following options to install the OpenTok Screensharing library, w
 
 #### Using the repository
 
-1. Clone the [OpenTok Screensharing with Annotations Sample repo](https://github.com/opentok/screensharing-annotation-acc-pack).
+1. Clone the [OpenTok Screensharing Accelerator Pack repo](https://github.com/opentok/screen-sharing-acc-pack).
 2. From the OpenTok Screensharing with Annotations Sample app project, right-click the app name and select **New > Module > Import Gradle Project**.
-3. Navigate to the directory in which you cloned **OpenTok Screensharing with Annotations Sample**, select **screensharing-acc-pack-kit**, and click **Finish**.
+3. Navigate to the directory in which you cloned **OpenTok Screensharing Accelerator Pack**, select **screensharing-acc-pack-kit**, and click **Finish**.
 4. Open the **build.gradle** file for the app and ensure the following lines have been added to the `dependencies` section:
 ```
 compile project(':screensharing-acc-pack-kit')
@@ -49,7 +49,7 @@ compile project(':screensharing-acc-pack-kit')
 
 #### Downloading and Installing the AAR File
 
-1.  Download the [Screensharing with Annotations Sample Library AAR](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/android/opentok-screensharing-annotations-2.0.0.zip).
+1.  Download the [Screensharing with Annotations Library AAR](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/android/opentok-screensharing-annotations-2.0.0.zip).
 1. Extract the **opentok-screensharing-annotations-2.0.0.aar** file.
 1. Right-click the app name, select **Open Module Settings**, and click **+**.
 1. Select **Import .JAR/.AAR Package** and click  **Next**.
@@ -186,7 +186,7 @@ The following `ScreenSharingFragment` methods are the main methods of the Screen
 
 To set up your annotation toolbar, instantiate a `ScreenSharingFragment` object and call the `setAnnotationsEnabled(boolean annotationsEnabled, AnnotationsToolbar toolbar)` method, setting the `annotationsEnabled` parameter to `true`.
 
-For example, the following private method instantiates a `ScreenSharingFragment` object and enables the annotation toolbar:
+For example, the following private method instantiates a `ScreenSharingFragment` object and enables the annotation toolbar in the Publisher:
 
 ```java
     private void initScreenSharingFragment(){
@@ -208,6 +208,11 @@ For example, the following private method instantiates a `ScreenSharingFragment`
     }
 ```
 
+To enable the annotation toolbar in the Subscriber:
+
+```java
+     mScreenSharingFragment.enableRemoteAnnotations(true, mAnnotationsToolbar, mRemoteViewContainer, mComm.getRemote());
+```
 
 #### Capturing and Saving a Screenshot
 
@@ -237,7 +242,6 @@ public class MainActivity extends AppCompatActivity implements
 
 }
 ```
-
 
 
 ### User interface
