@@ -157,7 +157,7 @@
             android:id="@+id/annotations_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/call_toolbar"
+            android:layout_above="@+id/actionbar_preview_fragment_container"
             android:visibility="gone"/>
 
         <TextView

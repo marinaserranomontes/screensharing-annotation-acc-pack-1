@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentTransaction;
@@ -22,7 +23,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TableLayout;
@@ -330,6 +330,10 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             Log.i(LOG_TAG, "Screensharing stop");
             mScreenSharingFragment.stop();
             showAVCall(true);
+            if (isAnnotations){
+                showAnnotationsToolbar(false);
+                isAnnotations = false;
+            }
             mPreviewFragment.restartScreensharing(); //restart screensharing UI
             mComm.start(); //restart the av call
             isScreensharing = false;
@@ -348,16 +352,12 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     @Override
     public void onAnnotations() {
         if (!isAnnotations) {
-            mAnnotationsToolbar.setVisibility(View.VISIBLE);
+            showAnnotationsToolbar(true);
             isAnnotations = true;
-            mCallToolbar.setVisibility(View.VISIBLE);
-            mActionBarContainer.setVisibility(View.GONE);
         }
         else {
-            mAnnotationsToolbar.setVisibility(View.GONE);
+            showAnnotationsToolbar(false);
             isAnnotations = false;
-            mCallToolbar.setVisibility(View.GONE);
-            mActionBarContainer.setVisibility(View.VISIBLE);
         }
     }
 
@@ -386,8 +386,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
     public void onCallToolbar(View view){
-        restartAnnotations();
-        isAnnotations = false;
+        showAll();
     }
 
     //OneToOneCommunicator listener events
@@ -399,6 +398,24 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     @Override
     public void onScreencaptureReady(Bitmap bmp) {
         saveScreencapture(bmp);
+    }
+
+    @Override
+    public void onAnnotationsSelected(AnnotationsView.Mode mode) {
+        if ( mode.equals(AnnotationsView.Mode.Pen) || mode.equals(AnnotationsView.Mode.Text) ){
+            //show minimized calltoolbar
+            mCallToolbar.setVisibility(View.VISIBLE);
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mAnnotationsToolbar.getLayoutParams();
+            params.addRule(RelativeLayout.ABOVE, mCallToolbar.getId());
+            mAnnotationsToolbar.setLayoutParams(params);
+            mAnnotationsToolbar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onAnnotationsDone() {
+        restartAnnotations();
+        isAnnotations = false;
     }
 
     //OneToOneCommunication callbacks
@@ -676,10 +693,44 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private void restartAnnotations(){
         mCallToolbar.setVisibility(View.GONE);
-        mAnnotationsToolbar.setVisibility(View.GONE);
-        mActionBarContainer.setVisibility(View.VISIBLE);
+        showAnnotationsToolbar(false);
         mPreviewFragment.restartAnnotations();
+    }
 
+    private void showAnnotationsToolbar(boolean show){
+        if (show) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mAnnotationsToolbar.getLayoutParams();
+            params.addRule(RelativeLayout.ABOVE, mActionBarContainer.getId());
+            mAnnotationsToolbar.setLayoutParams(params);
+            mAnnotationsToolbar.setVisibility(View.VISIBLE);
+            mActionBarContainer.setVisibility(View.VISIBLE);
+        }
+        else {
+            mCallToolbar.setVisibility(View.GONE);
+            mAnnotationsToolbar.setVisibility(View.GONE);
+            mActionBarContainer.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void showAll(){
+        mCallToolbar.setVisibility(View.GONE);
+        showAnnotationsToolbar(true);
+        CountDownTimer countDownTimer = new CountDownTimer(3000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+            }
+
+            @Override
+            public void onFinish() {
+                mCallToolbar.setVisibility(View.VISIBLE);
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mAnnotationsToolbar.getLayoutParams();
+                params.addRule(RelativeLayout.ABOVE, mCallToolbar.getId());
+                mAnnotationsToolbar.setLayoutParams(params);
+                mAnnotationsToolbar.setVisibility(View.VISIBLE);
+                mActionBarContainer.setVisibility(View.GONE);
+
+            }
+        }.start();
     }
 }
 
