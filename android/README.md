@@ -206,6 +206,24 @@ For example, the following private method instantiates a `ScreenSharingFragment`
     }
 ```
 
+To enable the annotation toolbar in the Subscriber:
+
+```java
+     try {
+            AnnotationsView remoteAnnotationsView = new AnnotationsView(this, mComm.getSession(), OpenTokConfig.API_KEY, mComm.getRemote());
+
+            AnnotationsVideoRenderer renderer = new AnnotationsVideoRenderer(this);
+            mComm.getRemote().setRenderer(renderer);
+            remoteAnnotationsView.setVideoRenderer(renderer);
+            remoteAnnotationsView.attachToolbar(mAnnotationsToolbar);
+
+            ((ViewGroup) mRemoteViewContainer).addView(remoteAnnotationsView);
+            mPreviewFragment.enableAnnotations(true);
+        } catch (Exception e) {
+            Log.i(LOG_TAG, "Exception - enableRemoteAnnotations: " + e);
+        }
+```
+
 #### Capturing and Saving a Screenshot
 
 The annotation toolbar provides a camera icon that the user can click to capture a screenshot of the shared screen containing previously rendered annotations.
@@ -247,7 +265,7 @@ This class works with the following `MainActivity` methods, which manage the vie
 | Manage the UI containers. | `onCreate()`  |
 | Reload the UI views whenever the device [configuration](http://developer.android.com/reference/android/content/res/Configuration.html), such as screen size or orientation, changes. | `onConfigurationChanged()`  |
 | Opens and closes the screen sharing with annotations view. | `onScreenSharing()` |
-| Manage the customizable views for the action bar, screen sharing, and annotation callbacks.   | `onScreenSharingStarted()`, `onScreenSharingStopped()`, `onAnnotationsViewReady()`, `onScreenSharingError()` |
+| Manage the customizable views for the action bar, screen sharing, and annotation callbacks.   | `onScreenSharingStarted()`, `onScreenSharingStopped()`, `onAnnotationsViewReady()`, `onAnnotationsRemoteViewReady()`, `onScreenSharingError()` |
 
 
 ## Requirements
