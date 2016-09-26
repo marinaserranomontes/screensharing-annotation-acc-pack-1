@@ -506,7 +506,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             mComm.getRemote().setRenderer(renderer);
             remoteAnnotationsView.setVideoRenderer(renderer);
             remoteAnnotationsView.attachToolbar(mAnnotationsToolbar);
-
+            remoteAnnotationsView.setAnnotationsListener(this);
             ((ViewGroup) mRemoteViewContainer).addView(remoteAnnotationsView);
             mPreviewFragment.enableAnnotations(true);
         } catch (Exception e) {
