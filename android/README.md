@@ -162,8 +162,7 @@ public interface ScreenSharingListener {
     void onScreenSharingStarted();
     void onScreenSharingStopped();
     void onScreenSharingError(String error);
-    void onAnnotationsViewReady(AnnotationsView view);       // publisher view
-    void onAnnotationsRemoteViewReady(AnnotationsView view); // subscriber view
+    void onAnnotationsViewReady(AnnotationsView view); 
 
 }
 ```
@@ -179,7 +178,6 @@ The following `ScreenSharingFragment` methods are the main methods of the Screen
 | Stop screen capture.  | `stop()`  |
 | Set the listener object to monitor state changes.   | `setListener()` |
 | Sets whether annotations are enabled on the specified publisher toolbar.  | `enableAnnotations()`  |
-| Sets whether annotations are enabled on the specified subscriber toolbar.  | `enableRemoteAnnotations()`  |
 
 
 #### Setting the Annotation Toolbar
@@ -206,12 +204,6 @@ For example, the following private method instantiates a `ScreenSharingFragment`
                       mScreenSharingFragment
                 ).commit();
     }
-```
-
-To enable the annotation toolbar in the Subscriber:
-
-```java
-     mScreenSharingFragment.enableRemoteAnnotations(true, mAnnotationsToolbar, mRemoteViewContainer, mComm.getRemote());
 ```
 
 #### Capturing and Saving a Screenshot
@@ -255,7 +247,7 @@ This class works with the following `MainActivity` methods, which manage the vie
 | Manage the UI containers. | `onCreate()`  |
 | Reload the UI views whenever the device [configuration](http://developer.android.com/reference/android/content/res/Configuration.html), such as screen size or orientation, changes. | `onConfigurationChanged()`  |
 | Opens and closes the screen sharing with annotations view. | `onScreenSharing()` |
-| Manage the customizable views for the action bar, screen sharing, and annotation callbacks.   | `onScreenSharingStarted()`, `onScreenSharingStopped()`, `onAnnotationsViewReady()`, `onAnnotationsRemoteViewReady()`, `onScreenSharingError()` |
+| Manage the customizable views for the action bar, screen sharing, and annotation callbacks.   | `onScreenSharingStarted()`, `onScreenSharingStopped()`, `onAnnotationsViewReady()`, `onScreenSharingError()` |
 
 
 ## Requirements

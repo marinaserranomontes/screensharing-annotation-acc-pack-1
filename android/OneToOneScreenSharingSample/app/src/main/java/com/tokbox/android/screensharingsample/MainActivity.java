@@ -615,12 +615,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         view.setAnnotationsListener(this);
     }
 
-    @Override
-    public void onAnnotationsRemoteViewReady(AnnotationsView view) {
-        Log.i(LOG_TAG, "onAnnotationsRemoteViewReady ");
-        view.setAnnotationsListener(this);
-    }
-
     public void saveScreencapture(Bitmap bmp) {
 
         if (bmp != null) {
