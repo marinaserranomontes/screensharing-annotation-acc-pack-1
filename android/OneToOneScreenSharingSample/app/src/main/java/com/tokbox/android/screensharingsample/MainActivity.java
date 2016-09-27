@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private TextView mCallToolbar;
 
-    private boolean screenshot;
+    private boolean mScreenshot;
 
     private boolean isRemoteAnnotations = false;
     private boolean isScreensharing = false;
@@ -196,9 +196,9 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     protected void onResume() {
         super.onResume();
 
-        if (mComm != null && mScreenSharingFragment != null && screenshot) {
+        if (mComm != null && mScreenSharingFragment != null && isScreensharing ) {
             onScreenSharing();
-            screenshot = false;
+            mScreenshot = false;
         }
     }
 
@@ -653,7 +653,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         intentSend.putExtra(Intent.EXTRA_TEXT, "");
         intentSend.putExtra(Intent.EXTRA_STREAM, uri);
         startActivity(Intent.createChooser(intentSend, "Share Screenshot"));
-        screenshot = true;
+        mScreenshot = true;
     }
 
     private void restartAnnotations() {
