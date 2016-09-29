@@ -1,6 +1,6 @@
 ![logo](../tokbox-logo.png)
 
-# OpenTok Screensharing with Annotations Sample for iOS<br/>Version 2.0.0
+# OpenTok Screensharing with Annotations Sample for iOS<br/>Version 1.1.0
 
 ## Quick start
 
