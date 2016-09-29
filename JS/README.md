@@ -1,5 +1,5 @@
 ![logo](../tokbox-logo.png)
-# OpenTok Screensharing with Annotations Sample for JavaScript<br/>Version 2.0.0
+# OpenTok Screensharing with Annotations Sample for JavaScript<br/>Version 1.1.0
 
 This document describes how to develop a web-based application that uses the OpenTok Screensharing with Annotations Sample for JavaScript.
 
@@ -181,7 +181,7 @@ To prepare for developing a web-based application that uses the OpenTok Screensh
 
 1. Review the basic requirements for [OpenTok](https://tokbox.com/developer/requirements/) and [OpenTok.js](https://tokbox.com/developer/sdks/js/#browsers).
 2. Your project must include [jQuery](https://jquery.com/) and [Underscore](http://underscorejs.org/).<br/>_**NOTE**: This step is not necessary if you are using [browserify](http://browserify.org/) or [webpack](https://webpack.github.io/) in your project._
-3. There are several ways to install the OpenTok Screensharing with Annotations Sample: <ul><li>(Preferred) Run the [build.sh script](./build.sh).</li><li>Download and extract the **screenshare-annotation-acc-pack.js** file from the [zip](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/JS/opentok-js-screenshare-annotation-1.0.0.zip) file provided by TokBox.</li><li>Install the following packages with  [npm](https://www.npmjs.com/package/opentok-screen-sharing): opentok-annotations, opentok-screen-sharing,  opentok-solutions-css, and opentok-solutions-logging. Then move the files to the `public/js` folder.</li></ul>
+3. There are several ways to install the OpenTok Screensharing with Annotations Sample: <ul><li>(Preferred) Run the [build.sh script](./build.sh).</li><li>Download and extract the **screenshare-annotation-acc-pack.js** file from the [zip](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/JS/opentok-js-screenshare-annotation-1.1.0.zip) file provided by TokBox.</li><li>Install the following packages with  [npm](https://www.npmjs.com/package/opentok-screen-sharing): opentok-annotations, opentok-screen-sharing,  opentok-solutions-css, and opentok-solutions-logging. Then move the files to the `public/js` folder.</li></ul>
 4. Your web page must load [OpenTok.js](https://tokbox.com/developer/sdks/js/) first, and then load [opentok-annotations.js](./sample-app/public/js/components/opentok-annotation.js) and [screenshare-annotation-acc-pack.js](./sample-app/public/js/components/screenshare-annotation-acc-pack.js).
 5. Your app will need a **Session ID**, **Token**, and **API key**. See the [Screensharing Annotation Sample home page](../README.md) for important information.
 
