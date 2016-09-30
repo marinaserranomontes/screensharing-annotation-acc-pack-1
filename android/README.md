@@ -42,15 +42,15 @@ compile project(':screensharing-acc-pack-kit')
 
 1. Modify the `build.gradle` for your activity. Add the following code to the section labeled `dependencies`:
 
-    `compile 'com.opentok.android:opentok-screensharing-annotations:2.0.0'`
+    `compile 'com.opentok.android:opentok-screensharing-annotations:1.1.0'`
 
   _**NOTE**: Because dependencies are transitive with Maven, you do not need to explicitly reference the TokBox Common Accelerator Session Pack and the Annotations Kit with this option._
 
 
 #### Downloading and Installing the AAR File
 
-1.  Download the [Screensharing with Annotations Library AAR](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/android/opentok-screensharing-annotations-2.0.0.zip).
-1. Extract the **opentok-screensharing-annotations-2.0.0.aar** file.
+1.  Download the [Screensharing with Annotations Library AAR](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/screensharing-annotations-acc-pack/android/opentok-screensharing-annotations-1.1.0.zip).
+1. Extract the **opentok-screensharing-annotations-1.1.0.aar** file.
 1. Right-click the app name, select **Open Module Settings**, and click **+**.
 1. Select **Import .JAR/.AAR Package** and click  **Next**.
 1. Browse to the **Screensharing with Annotations library AAR** and click **Finish**.
