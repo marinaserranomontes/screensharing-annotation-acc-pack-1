@@ -200,10 +200,6 @@ public class PreviewControlFragment extends Fragment {
                 ? mBtnClickListener
                 : null);
 
-        /*mAnnotationsBtn.setBackgroundResource(!mActivity.isScreensharing()
-                ? R.drawable.bckg_icon_selected
-                : R.drawable.bckg_icon);*/
-
         mScreenSharingBtn.setBackgroundResource(!mActivity.isScreensharing()
                 ? R.drawable.bckg_icon_selected
                 : R.drawable.bckg_icon);
@@ -263,6 +259,5 @@ public class PreviewControlFragment extends Fragment {
         mScreenSharingBtn.setBackgroundResource(!mActivity.isScreensharing()
                 ? R.drawable.bckg_icon_selected
                 : R.drawable.bckg_icon);
-
-    }
+        }
 }

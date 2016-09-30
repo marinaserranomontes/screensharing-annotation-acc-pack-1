@@ -614,6 +614,19 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         view.setAnnotationsListener(this);
     }
 
+    @Override
+    public void onClosed() {
+        Log.i(LOG_TAG, "onClosed ");
+        mPreviewFragment.restartScreensharing(); //restart screensharing UI
+        showAVCall(true);
+        if (isAnnotations) {
+            showAnnotationsToolbar(false);
+            isAnnotations = false;
+        }
+        mComm.start(); //restart the av call
+        isScreensharing = false;
+    }
+
     public void saveScreencapture(Bitmap bmp) {
 
         if (bmp != null) {
