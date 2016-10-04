@@ -2,6 +2,7 @@ package com.tokbox.android.screensharingsample;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -14,6 +15,8 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -89,6 +92,12 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private int mOrientation;
 
+    private boolean mAudioPermission = false;
+    private boolean mVideoPermission = false;
+    private boolean mWriteExternalStoragePermission = false;
+    private boolean mReadExternalStoragePermission = false;
+    private boolean mSystemAlertWindowPermission = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(LOG_TAG, "onCreate");
@@ -112,8 +121,17 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         mCallToolbar = (TextView) findViewById(R.id.call_toolbar);
 
         //request Marshmallow camera permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(permissions, permsRequestCode);
+        if (ContextCompat.checkSelfPermission(this,permissions[1]) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,permissions[0]) != PackageManager.PERMISSION_GRANTED){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(permissions, permsRequestCode);
+            }
+        }
+        else {
+            mVideoPermission = true;
+            mAudioPermission = true;
+            mWriteExternalStoragePermission = true;
+            mReadExternalStoragePermission = true;
+            mSystemAlertWindowPermission = true;
         }
 
         //init 1to1 communication object
@@ -209,15 +227,39 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
     @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions,
+    public void onRequestPermissionsResult(final int permsRequestCode, final String[] permissions,
                                            int[] grantResults) {
         switch (permsRequestCode) {
             case 200:
-                boolean video = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                boolean audio = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-                boolean readExternalStorage = grantResults[2] == PackageManager.PERMISSION_GRANTED;
-                boolean writeExternalStorage = grantResults[3] == PackageManager.PERMISSION_GRANTED;
-                boolean systemAlertWindow = grantResults[4] == PackageManager.PERMISSION_GRANTED;
+                mVideoPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                mAudioPermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                mReadExternalStoragePermission = grantResults[2] == PackageManager.PERMISSION_GRANTED;
+                mWriteExternalStoragePermission = grantResults[3] == PackageManager.PERMISSION_GRANTED;
+                mSystemAlertWindowPermission = grantResults[4] == PackageManager.PERMISSION_GRANTED;
+
+
+                if ( !mVideoPermission || !mAudioPermission || !mReadExternalStoragePermission || !mWriteExternalStoragePermission || !mSystemAlertWindowPermission){
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle(getResources().getString(R.string.permissions_denied_title));
+                    builder.setMessage(getResources().getString(R.string.alert_permissions_denied));
+                    builder.setPositiveButton("I'M SURE", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    builder.setNegativeButton("RE-TRY", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                requestPermissions(permissions, permsRequestCode);
+                            }
+                        }
+                    });
+                    builder.show();
+                }
+
                 break;
         }
     }
@@ -496,6 +538,23 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 }
             }
         }
+    }
+
+    @Override
+    public void onReconnecting() {
+        Log.i(LOG_TAG, "The session is reconnecting.");
+        Toast.makeText(this, R.string.reconnecting, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onReconnected() {
+        Log.i(LOG_TAG, "The session reconnected.");
+        Toast.makeText(this, R.string.reconnected, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onCameraChanged(int newCameraId) {
+        Log.i(LOG_TAG, "The camera changed. New camera id is: "+newCameraId);
     }
 
     private void remoteAnnotations() {
