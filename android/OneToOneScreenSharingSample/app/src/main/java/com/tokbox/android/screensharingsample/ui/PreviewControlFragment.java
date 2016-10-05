@@ -242,13 +242,11 @@ public class PreviewControlFragment extends Fragment {
     }
 
     public void restartAnnotations(){
-        if (mAnnotationsBtn != null ) {
-            mAnnotationsBtn.setBackgroundResource(!mActivity.isAnnotations()
-                    ? R.drawable.bckg_icon_selected
-                    : R.drawable.bckg_icon);
-        }
+        mAnnotationsBtn.setBackgroundResource(R.drawable.bckg_icon);
+        enableAnnotations(false);
     }
     public void enableAnnotations(boolean enable){
+
         if (mAnnotationsBtn != null ) {
             mAnnotationsBtn.setOnClickListener(enable
                     ? mBtnClickListener
@@ -256,8 +254,6 @@ public class PreviewControlFragment extends Fragment {
         }
     }
     public void restartScreensharing(){
-        mScreenSharingBtn.setBackgroundResource(!mActivity.isScreensharing()
-                ? R.drawable.bckg_icon_selected
-                : R.drawable.bckg_icon);
-        }
+        mScreenSharingBtn.setBackgroundResource(R.drawable.bckg_icon);
+    }
 }

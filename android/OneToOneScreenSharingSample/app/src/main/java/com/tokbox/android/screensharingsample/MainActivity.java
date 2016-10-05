@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
-    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.SYSTEM_ALERT_WINDOW};
+    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private final int permsRequestCode = 200;
 
     //OpenTok calls
@@ -83,8 +83,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private TextView mCallToolbar;
 
-    private boolean mScreenshot;
-
     private boolean isRemoteAnnotations = false;
     private boolean isScreensharing = false;
     private boolean isAnnotations = false;
@@ -96,7 +94,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     private boolean mVideoPermission = false;
     private boolean mWriteExternalStoragePermission = false;
     private boolean mReadExternalStoragePermission = false;
-    private boolean mSystemAlertWindowPermission = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             mAudioPermission = true;
             mWriteExternalStoragePermission = true;
             mReadExternalStoragePermission = true;
-            mSystemAlertWindowPermission = true;
         }
 
         //init 1to1 communication object
@@ -214,11 +210,36 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     protected void onResume() {
         super.onResume();
 
-        if (mComm != null && mScreenSharingFragment != null && isScreensharing ) {
-            onScreenSharing();
-            mScreenshot = false;
+        if (mComm != null && mComm.isStarted()) {
+            if (isScreensharing) {
+                onScreenSharing();
+            }
+            else {
+                mComm.getSession().onResume();
+                mComm.reloadViews();
+            }
         }
+
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mComm != null) {
+            if (isScreensharing){
+                mComm.start();
+                showAVCall(true);
+            }
+            mComm.getSession().onPause();
+
+            if (mComm.isRemote()) {
+                mRemoteViewContainer.removeAllViews();
+            }
+        }
+
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -235,10 +256,8 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 mAudioPermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
                 mReadExternalStoragePermission = grantResults[2] == PackageManager.PERMISSION_GRANTED;
                 mWriteExternalStoragePermission = grantResults[3] == PackageManager.PERMISSION_GRANTED;
-                mSystemAlertWindowPermission = grantResults[4] == PackageManager.PERMISSION_GRANTED;
 
-
-                if ( !mVideoPermission || !mAudioPermission || !mReadExternalStoragePermission || !mWriteExternalStoragePermission || !mSystemAlertWindowPermission){
+                if ( !mVideoPermission || !mAudioPermission || !mReadExternalStoragePermission || !mWriteExternalStoragePermission ){
                     final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle(getResources().getString(R.string.permissions_denied_title));
                     builder.setMessage(getResources().getString(R.string.alert_permissions_denied));
@@ -320,23 +339,15 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         return isScreensharing;
     }
 
-    public boolean isAnnotations() {
-        return isAnnotations;
-    }
-
-    public boolean isRemoteAnnotations() {
-        return isRemoteAnnotations;
-    }
-
     @Override
     public void onScreenSharing() {
         if (mScreenSharingFragment.isStarted()) {
             mScreenSharingFragment.stop();
+            isScreensharing = false;
             showAVCall(true);
             showAnnotationsToolbar(false);
             mPreviewFragment.restartScreensharing(); //restart screensharing UI
             mComm.start(); //restart the av call
-            isScreensharing = false;
             isAnnotations = false;
         }
 
@@ -345,7 +356,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 showAVCall(false);
                 mComm.end(); //stop the av call
                 mScreenSharingFragment.start();
-                isScreensharing = true;
                 mPreviewFragment.enableAnnotations(true);
             }
         }
@@ -515,6 +525,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             } else {
                 restartOrientation();
                 if (mComm.isStarted()) {
+                    Log.i(LOG_TAG, "MCOOM.ISSTARTED");
                     onPreviewReady(mComm.getPreviewView()); //main preview view
                 }
                 if (!mComm.isRemote()) {
@@ -522,9 +533,8 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                     onAudioOnly(false);
                     mRemoteViewContainer.removeAllViews();
                     mRemoteViewContainer.setClickable(false);
-                    mPreviewFragment.enableAnnotations(false);
-                    showAnnotationsToolbar(false);
                 } else {
+                    showAnnotationsToolbar(false);
                     if (mComm.getRemoteVideoView() != null) {
                         //show remote view
                         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
@@ -653,6 +663,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     @Override
     public void onScreenSharingStarted() {
         Log.i(LOG_TAG, "onScreenSharingStarted");
+        isScreensharing = true;
     }
 
     @Override
@@ -663,6 +674,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     @Override
     public void onScreenSharingError(String error) {
         Log.i(LOG_TAG, "onScreenSharingError " + error);
+        isScreensharing = false;
         mComm.start();
         showAVCall(true);
     }
@@ -725,7 +737,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         intentSend.putExtra(Intent.EXTRA_TEXT, "");
         intentSend.putExtra(Intent.EXTRA_STREAM, uri);
         startActivity(Intent.createChooser(intentSend, "Share Screenshot"));
-        mScreenshot = true;
     }
 
     private void restartAnnotations() {
@@ -748,7 +759,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 mCountDownTimer.cancel();
                 mCountDownTimer = null;
             }
-            mPreviewFragment.restartAnnotations();
             mAnnotationsToolbar.restart();
         }
     }
