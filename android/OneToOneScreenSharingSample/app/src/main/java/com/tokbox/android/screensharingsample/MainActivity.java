@@ -525,7 +525,6 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
             } else {
                 restartOrientation();
                 if (mComm.isStarted()) {
-                    Log.i(LOG_TAG, "MCOOM.ISSTARTED");
                     onPreviewReady(mComm.getPreviewView()); //main preview view
                 }
                 if (!mComm.isRemote()) {
