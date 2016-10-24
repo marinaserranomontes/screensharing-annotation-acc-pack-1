@@ -8,6 +8,8 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -80,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     ProgressDialog mProgressDialog;
 
     private AnnotationsToolbar mAnnotationsToolbar;
+    private AnnotationsVideoRenderer mRenderer;
+    private AnnotationsView mRemoteAnnotationsView;
 
     private TextView mCallToolbar;
 
@@ -136,6 +140,9 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
         //set listener to receive the communication events, and add UI to these events
         mComm.setListener(this);
         mComm.init();
+
+        mRenderer = new AnnotationsVideoRenderer(this);
+        mComm.setRemoteScreenRenderer(mRenderer);
 
         //init controls fragments
         if (savedInstanceState == null) {
@@ -568,14 +575,11 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
 
     private void remoteAnnotations() {
         try {
-            AnnotationsView remoteAnnotationsView = new AnnotationsView(this, mComm.getSession(), OpenTokConfig.API_KEY, mComm.getRemote());
-
-            AnnotationsVideoRenderer renderer = new AnnotationsVideoRenderer(this);
-            mComm.getRemote().setRenderer(renderer);
-            remoteAnnotationsView.setVideoRenderer(renderer);
-            remoteAnnotationsView.attachToolbar(mAnnotationsToolbar);
-            remoteAnnotationsView.setAnnotationsListener(this);
-            ((ViewGroup) mRemoteViewContainer).addView(remoteAnnotationsView);
+            mRemoteAnnotationsView = new AnnotationsView(this, mComm.getSession(), OpenTokConfig.API_KEY, mComm.getRemote());
+            mRemoteAnnotationsView.setVideoRenderer(mRenderer);
+            mRemoteAnnotationsView.attachToolbar(mAnnotationsToolbar);
+            mRemoteAnnotationsView.setAnnotationsListener(this);
+            ((ViewGroup) mRemoteViewContainer).addView(mRemoteAnnotationsView);
             mPreviewFragment.enableAnnotations(true);
         } catch (Exception e) {
             Log.i(LOG_TAG, "Exception - enableRemoteAnnotations: " + e);
@@ -698,8 +702,18 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
     }
 
     public void saveScreencapture(Bitmap bmp) {
-
         if (bmp != null) {
+            Bitmap annotationsBmp = null;
+            Bitmap overlayBmp = null;
+            //get bmp from annotationsView
+            if ( mRemoteAnnotationsView != null ){
+                annotationsBmp= getBitmapFromView(mRemoteAnnotationsView);
+                overlayBmp = mergeBitmaps(bmp, annotationsBmp);
+            }
+            else {
+                overlayBmp = bmp;
+            }
+
             String filename;
             Date date = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -711,7 +725,7 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 File file = new File(path, filename + ".jpg");
                 fOut = new FileOutputStream(file);
 
-                bmp.compress(Bitmap.CompressFormat.JPEG, 85, fOut);
+                overlayBmp.compress(Bitmap.CompressFormat.JPEG, 85, fOut);
                 fOut.flush();
                 fOut.close();
 
@@ -724,6 +738,37 @@ public class MainActivity extends AppCompatActivity implements OneToOneCommunica
                 e.printStackTrace();
             }
         }
+    }
+
+    private Bitmap getBitmapFromView(View view) {
+            //Define a bitmap with the same size as the view
+            Bitmap returnedBitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),Bitmap.Config.ARGB_8888);
+            //Bind a canvas to it
+            Canvas canvas = new Canvas(returnedBitmap);
+            //Get the view's background
+            Drawable bgDrawable =view.getBackground();
+            if (bgDrawable!=null)
+                //has background drawable, then draw it on the canvas
+                bgDrawable.draw(canvas);
+            /*else
+                //does not have background drawable, then draw white background on the canvas
+                canvas.drawColor(Color.WHITE);*/
+
+            // draw the view on the canvas
+            view.draw(canvas);
+            //return the bitmap
+            return returnedBitmap;
+    }
+
+    private Bitmap mergeBitmaps(Bitmap bmp1, Bitmap bmp2){
+        Bitmap bmpOverlay = Bitmap.createBitmap(bmp1.getWidth(), bmp1.getHeight(), bmp1.getConfig());
+        bmp2 = Bitmap.createScaledBitmap(bmp2, bmp1.getWidth(), bmp1.getHeight(),
+                true);
+        Canvas canvas = new Canvas(bmpOverlay);
+        canvas.drawBitmap(bmp1, 0,0, null);
+        canvas.drawBitmap(bmp2, 0,0, null);
+
+        return bmpOverlay;
     }
 
     private void openScreenshot(File imageFile) {
