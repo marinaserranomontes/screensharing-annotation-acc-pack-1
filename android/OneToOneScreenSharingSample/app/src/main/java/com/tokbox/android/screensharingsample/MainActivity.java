@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
 
         //use a custom video renderer for the annotations. It will be applied to the remote. It will be applied before to start subscribing
         mRemoteRenderer = new AnnotationsVideoRenderer(this);
-        mWrapper.setRemoteScreenRenderer(mRemoteRenderer);
+        mWrapper.setRemoteVideoRenderer(mRemoteRenderer, true);
 
         //connect
         if ( mWrapper != null ) {
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
             showAVCall(true);
             showAnnotationsToolbar(false);
             mPreviewFragment.restartScreensharing(); //restart screensharing UI
-            mWrapper.startSharingMedia(new PreviewConfig.PreviewConfigBuilder().
+            mWrapper.startPublishingMedia(new PreviewConfig.PreviewConfigBuilder().
                     name("Tokboxer").build(), false); //restar av call
             isCallInProgress = true;
             isAnnotations = false;
@@ -297,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
         if (mScreenSharingFragment != null) {
             if (!mScreenSharingFragment.isStarted()) {
                 showAVCall(false);
-                mWrapper.stopSharingMedia(false); //stop call
+                mWrapper.stopPublishingMedia(false); //stop call
                 isCallInProgress = false;
                 mScreenSharingFragment.start();
                 mPreviewFragment.enableAnnotations(true);
@@ -320,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
     @Override
     public void onDisableRemoteAudio(boolean audio) {
         if (mWrapper != null) {
-            mWrapper.enableRemoteMedia(mRemoteId, MediaType.AUDIO, audio);
+            mWrapper.enableReceivedMedia(mRemoteId, MediaType.AUDIO, audio);
         }
     }
 
@@ -328,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
     @Override
     public void onDisableRemoteVideo(boolean video) {
         if (mWrapper != null) {
-            mWrapper.enableRemoteMedia(mRemoteId, MediaType.VIDEO, video);
+            mWrapper.enableReceivedMedia(mRemoteId, MediaType.VIDEO, video);
         }
     }
 
@@ -583,14 +583,14 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
         Log.i(LOG_TAG, "OnCall");
         if ( mWrapper != null && isConnected ) {
             if ( !isCallInProgress ) {
-                mWrapper.startSharingMedia(new PreviewConfig.PreviewConfigBuilder().
+                mWrapper.startPublishingMedia(new PreviewConfig.PreviewConfigBuilder().
                         name("Tokboxer").build(), false);
                 if ( mPreviewFragment != null ) {
                     mPreviewFragment.setEnabled(true);
                 }
                 isCallInProgress = true;
             } else {
-                mWrapper.stopSharingMedia(false);
+                mWrapper.stopPublishingMedia(false);
                 isCallInProgress = false;
                 cleanViewsAndControls();
             }
@@ -644,7 +644,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
         Log.i(LOG_TAG, "onScreenSharingError " + error);
         isScreensharing = false;
         //restart the audio video call
-        mWrapper.startSharingMedia(new PreviewConfig.PreviewConfigBuilder().
+        mWrapper.startPublishingMedia(new PreviewConfig.PreviewConfigBuilder().
                 name("Tokboxer").build(), false);
         isCallInProgress = true;
         showAVCall(true);
@@ -666,14 +666,14 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
             isAnnotations = false;
         }
         isScreensharing = false;
-        mWrapper.startSharingMedia(new PreviewConfig.PreviewConfigBuilder().
+        mWrapper.startPublishingMedia(new PreviewConfig.PreviewConfigBuilder().
                 name("Tokboxer").build(), false); //restar av call
         isCallInProgress = true;
     }
 
     private void checkRemotes(){
         if ( mRemoteId != null ){
-            if (!mWrapper.isRemoteMediaEnabled(mRemoteId, MediaType.VIDEO)){
+            if (!mWrapper.isReceivedMediaEnabled(mRemoteId, MediaType.VIDEO)){
                 onAudioOnly(true);
             }
             else {
@@ -871,7 +871,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
                 }
 
                 @Override
-                public void onStartedSharingMedia(OTWrapper otWrapper, boolean screensharing) throws ListenerException {
+                public void onStartedPublishingMedia(OTWrapper otWrapper, boolean screensharing) throws ListenerException {
                     Log.i(LOG_TAG, "Local started streaming video.");
 
                     //Check if there are some connected remotes
@@ -880,7 +880,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
                 }
 
                 @Override
-                public void onStoppedSharingMedia(OTWrapper otWrapper, boolean isScreensharing) throws ListenerException {
+                public void onStoppedPublishingMedia(OTWrapper otWrapper, boolean isScreensharing) throws ListenerException {
                     Log.i(LOG_TAG, "Local stopped streaming video.");
                 }
 
@@ -913,7 +913,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
                 }
 
                 @Override
-                public void onRemoteVideoChange(OTWrapper otWrapper, String remoteId, String reason, boolean videoActive, boolean subscribed) throws ListenerException {
+                public void onRemoteVideoChanged(OTWrapper otWrapper, String remoteId, String reason, boolean videoActive, boolean subscribed) throws ListenerException {
                     Log.i(LOG_TAG, "Remote video changed");
                     if (isCallInProgress) {
                         if (reason.equals("quality")) {
