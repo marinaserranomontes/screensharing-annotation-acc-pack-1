@@ -1,6 +1,6 @@
 ![logo](../tokbox-logo.png)
 
-# OpenTok Screensharing with Annotations Sample App for Android<br/>Version 1.1.0
+# OpenTok Screensharing with Annotations Sample App for Android<br/>Version 2.0.0
 
 ## Quick start
 
