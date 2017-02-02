@@ -105,13 +105,6 @@
             android:layout_marginTop="37.5dp"
             android:visibility="visible"></RelativeLayout>
 
-        <FrameLayout
-            android:id="@+id/screensharing_fragment_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"
-            android:layout_above="@+id/actionbar_preview_fragment_container"/>
-
         <com.tokbox.android.annotations.AnnotationsToolbar
             android:id="@+id/annotations_bar"
             android:layout_width="match_parent"
