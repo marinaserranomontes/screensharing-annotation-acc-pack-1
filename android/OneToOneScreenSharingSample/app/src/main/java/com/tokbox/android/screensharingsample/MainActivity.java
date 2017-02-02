@@ -822,15 +822,10 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
     }
 
     private void cleanViewsAndControls() {
-        if ( mRemoteId != null ) {
-            setRemoteView(null, mRemoteId);
-        }
-        if ( mScreenRemoteId != null ) {
-            setRemoteView(null, mScreenRemoteId);
-        }
+        mRemoteViewContainer.removeAllViews();
         if (isLocal) {
             isLocal = false;
-            setLocalView(null);
+            mPreviewViewContainer.removeAllViews();
         }
         if (mPreviewFragment != null)
             mPreviewFragment.restart();
@@ -964,7 +959,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
             }
         } else { //view null --> remove view
             if (mRemoteViewContainer.getChildCount() > 0 ) {
-                mRemoteViewContainer.removeView(mWrapper.getRemoteStreamStatus(remoteId).getView());
+                mRemoteViewContainer.removeAllViews();
             }
             mRemoteViewContainer.setClickable(false);
             mAudioOnlyView.setVisibility(View.GONE);
