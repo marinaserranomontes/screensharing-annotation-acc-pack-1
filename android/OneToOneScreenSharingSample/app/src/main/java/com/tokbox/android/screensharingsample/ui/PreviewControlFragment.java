@@ -232,9 +232,6 @@ public class PreviewControlFragment extends Fragment {
                 mAudioBtn.setOnClickListener(mBtnClickListener);
                 mVideoBtn.setOnClickListener(mBtnClickListener);
                 mScreenSharingBtn.setOnClickListener(mBtnClickListener);
-               /*todo if ( mActivity.getComm().getRemoteScreenView() != null ){
-                    enableAnnotations(true);
-                }*/
             } else {
                 mAudioBtn.setOnClickListener(null);
                 mVideoBtn.setOnClickListener(null);
@@ -242,7 +239,6 @@ public class PreviewControlFragment extends Fragment {
                 mVideoBtn.setImageResource(R.drawable.video_icon);
                 mScreenSharingBtn.setOnClickListener(null);
                 mAnnotationsBtn.setOnClickListener(null);
-
             }
         }
     }
