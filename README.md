@@ -1,6 +1,12 @@
 ![logo](./tokbox-logo.png)
 
-# OpenTok Screensharing with Annotations Sample App<br/>Version 200.0
+[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg)]()
+[![Open Source Love](https://badges.frapsoft.com/os/mit/mit.svg?v=102)](./LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+
+
+
+# OpenTok Screensharing with Annotations Sample App<br/>
 
 The OpenTok Screensharing with Annotations Sample App provides sample codes you can add to your OpenTok applications that enables users to share their screens between mobile or browser-based devices.
 
