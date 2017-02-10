@@ -163,15 +163,13 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
 
         //init the sdk wrapper
         OTConfig config =
-                new OTConfig.OTConfigBuilder(OpenTokConfig.SESSION_ID, OpenTokConfig.TOKEN,
-                        OpenTokConfig.API_KEY).name("one-to-one-screensharing-sample-app").subscribeAutomatically(true).subscribeToSelf(false).build();
+                new OTConfig.OTConfigBuilder(OpenTokConfig.SESSION_ID, OpenTokConfig.TOKEN, OpenTokConfig.API_KEY).name("one-to-one-screensharing-sample-app").subscribeAutomatically(true).subscribeToSelf(false).build();
 
         mWrapper = new OTWrapper(MainActivity.this, config);
 
         //set listener to receive the communication events, and add UI to these events
         mWrapper.addBasicListener(mBasicListener);
         mWrapper.addAdvancedListener(mAdvancedListener);
-
         //use a custom video renderer for the annotations. It will be applied to the remote. It will be applied before to start subscribing
         mRemoteRenderer = new AnnotationsVideoRenderer(this);
         mScreensharingRenderer = new AnnotationsVideoRenderer(this);
@@ -490,6 +488,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
                             mScreenRemoteId = remoteId;
                         }
                     }
+
                     mRemoteView = remoteView;
                 }
 
@@ -803,7 +802,6 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
             mScreensharingBar = null;
         }
     }
-
     private void initPreviewFragment() {
         mPreviewFragment = new PreviewControlFragment();
         getSupportFragmentManager().beginTransaction()
@@ -847,7 +845,6 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
             mRemoteFragment.restart();
         if (mActionBarContainer != null)
             mActionBarContainer.setBackground(null);
-
         if (mRemoteAnnotationsView != null) {
             mRemoteViewContainer.removeView(mRemoteAnnotationsView);
         }
@@ -882,9 +879,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
     private void setLocalView(View localView){
         if (localView != null) {
             mPreviewViewContainer.removeAllViews();
-
             //mRemoteViewContainer.removeAllViews();
-
             mLayoutParamsPreview = new RelativeLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             if ( mRemoteId != null || mScreenRemoteId != null ) {
@@ -898,6 +893,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
                 mLayoutParamsPreview.bottomMargin = (int) getResources().getDimension(R.dimen.preview_bottomMargin);
             }
             mPreviewViewContainer.addView(localView, mLayoutParamsPreview);
+
         }
         else {
             mPreviewViewContainer.removeAllViews();
@@ -953,7 +949,6 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
         if (remoteView != null) {
             if (mWrapper.getRemoteStreamStatus(remoteId).getType() == StreamStatus.StreamType.SCREEN) {
                 Log.i(LOG_TAG, "remote view screen");
-                //mRemoteViewContainer.removeAllViews();
                 if (mRemoteViewContainer.getChildCount() > 2){
                     mRemoteViewContainer.removeViewAt(mRemoteViewContainer.getChildCount()-1);
                 }
@@ -990,7 +985,7 @@ public class MainActivity extends AppCompatActivity implements PreviewControlFra
             restartOrientation();
         }
     }
-
+          
     private void onRemoteAudioOnly(boolean enabled) {
         if (enabled) {
             mRemoteView.setVisibility(View.GONE);
