@@ -25,10 +25,9 @@
   var _options = {
     apiKey: '', // Replace with your OpenTok API key
     sessionId: '', // Replace with a generated Session ID
-    token: '', // Replace with a generated token
+    token: '',
     screensharing: {
-      extensionID: '', // Add your Chrome extension ID
-      extensionPathFF: '', // Add the path to the Firefox extension
+      extensionID: '',
       annotation: true
     }
   };
@@ -52,8 +51,10 @@
         $('#videoHolderSmall').hide();
         $('#videoHolderBig').hide();
         $('#videoHolderSharedScreen').show();
+        $('#viewingSharedMask').show();
         $('#toolbar').show();
         $('#feedControls').addClass('viewing-shared-screen');
+        $('#otsWidget').addClass('viewing-shared-screen');
       }
 
     } else {
@@ -61,7 +62,9 @@
       $('#videoHolderSmall').show();
       $('#videoHolderBig').show();
       $('#videoHolderSharedScreen').hide();
+      $('#viewingSharedMask').hide();
       $('#feedControls').removeClass('viewing-shared-screen');
+      $('#otsWidget').removeClass('viewing-shared-screen');
 
     }
 
