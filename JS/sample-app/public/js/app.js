@@ -1,266 +1,196 @@
-/* global AcceleratorPack CommunicationAccPack */
-(function () {
+/* global otCore */
+const options = {
+  credentials: {
+    apiKey: "",  //Replace with your OpenTok API key 
+    sessionId: "", //Replace with a generated Session ID
+    token: "", //Replace with a generated token (from the dashboard or using an OpenTok server SDK)
+  },
+  // A container can either be a query selector or an HTMLElement
+  streamContainers: function streamContainers(pubSub, type, data) {
+    return {
+      publisher: {
+        camera: '#cameraPublisherContainer',
+        screen: '#screenPublisherContainer',
+      },
+      subscriber: {
+        camera: '#cameraSubscriberContainer',
+        screen: '#screenSubscriberContainer',
+      },
+    }[pubSub][type];
+  },
+  controlsContainer: '#controls',
+  packages: ['screenSharing', 'annotation'],
+  communication: {
+    callProperites: null, // Using default
+  },
+  screenSharing: {
+    extensionID: '', //Replace with your extensionID
+    annotation: true,
+    externalWindow: false,
+    dev: true,
+    screenProperties: null, // Using default
+  },
+  annotation: {
 
-  // Modules
-  var _accPack;
-  var _communication;
+  },
+};
 
-  // OpenTok session
-  var _session;
-
-  // Application State
-  var _initialized = false;
-  var _connected = false;
-  var _callActive = false;
-  var _remoteParticipant = false;
-  var _viewingSharedScreen = false;
-  var _callProps = {
-    enableLocalAudio: true,
-    enableLocalVideo: true,
-    enableRemoteAudio: true,
-    enableRemoteVideo: true,
-  };
-
-  // Options hash
-  var _options = {
-    apiKey: '', // Replace with your OpenTok API key
-    sessionId: '', // Replace with a generated Session ID
-    token: '',
-    screensharing: {
-      extensionID: '',
-      annotation: true
-    }
-  };
-
-  /** DOM Helper Methods */
-  var _makePrimaryVideo = function (element) {
-    $(element).addClass('primary-video');
-    $(element).removeClass('secondary-video');
-  };
-
-  var _makeSecondaryVideo = function (element) {
-    $(element).removeClass('primary-video');
-    $(element).addClass('secondary-video');
-  };
-
-  var _viewSharedScreen = function (viewing) {
-
-    if (viewing) {
-
-      if (_callActive) {
-        $('#videoHolderSmall').hide();
-        $('#videoHolderBig').hide();
-        $('#videoHolderSharedScreen').show();
-        $('#viewingSharedMask').show();
-        $('#toolbar').show();
-        $('#feedControls').addClass('viewing-shared-screen');
-        $('#otsWidget').addClass('viewing-shared-screen');
-      }
-
-    } else {
-
-      $('#videoHolderSmall').show();
-      $('#videoHolderBig').show();
-      $('#videoHolderSharedScreen').hide();
-      $('#viewingSharedMask').hide();
-      $('#feedControls').removeClass('viewing-shared-screen');
-      $('#otsWidget').removeClass('viewing-shared-screen');
-
-    }
-
-    _viewingSharedScreen = viewing;
-  };
-
-  // Swap positions of the small and large video elements when participant joins or leaves call
-  var _swapVideoPositions = function (type) {
-
-    if (type === 'start' || type === 'joined') {
-
-      _makePrimaryVideo('#videoHolderBig');
-      _makeSecondaryVideo('#videoHolderSmall');
-
-      /**
-       * The other participant may or may not have joined the call at this point.
-       */
-      if (!!_remoteParticipant) {
-        $('#remoteControls').show();
-        $('#videoHolderBig').show();
-      }
-
-      if (_viewingSharedScreen) {
-        _viewSharedScreen(true);
-      }
-
-
-    } else if ((type === 'end' && !!_remoteParticipant) || type === 'left') {
-
-      _makePrimaryVideo('#videoHolderSmall');
-      _makeSecondaryVideo('#videoHolderBig');
-
-      $('#remoteControls').hide();
-      $('#videoHolderBig').hide();
-
-      if (_viewingSharedScreen) {
-        $('#videoHolderSharedScreen').hide();
-      }
-    }
-
+/** Application Logic */
+const app = () => {
+  const state = {
+    connected: false,
+    active: false,
+    publishers: null,
+    subscribers: null,
+    meta: null,
+    localAudioEnabled: true,
+    localVideoEnabled: true,
   };
 
   /**
-   * Toggle local or remote audio/video
-   * @param {String} type Which of the properties in _callProps
-   * @param {Boolean} [reset] Set to true?
+   * Update the size and position of video containers based on the number of
+   * publishers and subscribers specified in the meta property returned by otCore.
    */
-  var _toggleMediaProperties = function (type, reset) {
-    _callProps[type] = reset ? true : !_callProps[type];
-    _communication[type](_callProps[type]);
-    $(['#', type].join(''))[reset ? 'removeClass' : 'toggleClass']('disabled');
+  const updateVideoContainers = () => {
+    const { meta } = state;
+    const sharingScreen = meta ? !!meta.publisher.screen : false;
+    const viewingSharedScreen = meta ? meta.subscriber.screen : false;
+    const activeCameraSubscribers = meta ? meta.subscriber.camera : 0;
+
+    const videoContainerClass = `App-video-container ${(sharingScreen || viewingSharedScreen) ? 'center' : ''}`;
+    document.getElementById('appVideoContainer').setAttribute('class', videoContainerClass);
+
+    const cameraPublisherClass =
+      `video-container ${!!activeCameraSubscribers || sharingScreen ? 'small' : ''} ${!!activeCameraSubscribers || sharingScreen ? 'small' : ''} ${sharingScreen || viewingSharedScreen ? 'left' : ''}`;
+    document.getElementById('cameraPublisherContainer').setAttribute('class', cameraPublisherClass);
+
+    const screenPublisherClass = `video-container ${!sharingScreen ? 'hidden' : ''}`;
+    document.getElementById('screenPublisherContainer').setAttribute('class', screenPublisherClass);
+
+    const cameraSubscriberClass =
+      `video-container ${!activeCameraSubscribers ? 'hidden' : ''} active-${activeCameraSubscribers} ${viewingSharedScreen || sharingScreen ? 'small' : ''}`;
+    document.getElementById('cameraSubscriberContainer').setAttribute('class', cameraSubscriberClass);
+
+    const screenSubscriberClass = `video-container ${!viewingSharedScreen ? 'hidden' : ''}`;
+    document.getElementById('screenSubscriberContainer').setAttribute('class', screenSubscriberClass);
+  };
+
+
+  /**
+   * Update the UI
+   * @param {String} update - 'connected', 'active', or 'meta'
+   */
+  const updateUI = (update) => {
+    const { connected, active } = state;
+
+    switch (update) {
+      case 'connected':
+        if (connected) {
+          document.getElementById('connecting-mask').classList.add('hidden');
+          document.getElementById('start-mask').classList.remove('hidden');
+        }
+        break;
+      case 'active':
+        if (active) {
+          document.getElementById('cameraPublisherContainer').classList.remove('hidden');
+          document.getElementById('start-mask').classList.add('hidden');
+          document.getElementById('controls').classList.remove('hidden');
+        }
+        else {
+          document.getElementById('start-mask').classList.remove('hidden');
+          document.getElementById('controls').classList.add('hidden');
+          document.getElementById('cameraPublisherContainer').classList.add('hidden');
+          document.getElementById('toggleLocalVideo').classList.remove('muted');
+          document.getElementById('toggleLocalAudio').classList.remove('muted');
+        }
+        break;
+      case 'meta':
+        updateVideoContainers();
+        break;
+      default:
+        console.log('nothing to do, nowhere to go');
+    }
   };
 
   /**
-   * Reset all call props to true (enabled)
+   * Update the state and UI
    */
-  var _resetCallProps = function () {
-    Object.keys(_callProps).forEach(function (type) {
-      _toggleMediaProperties(type, true);
-    });
+  const updateState = (updates) => {
+    Object.assign(state, updates);
+    Object.keys(updates).forEach(update => updateUI(update));
   };
 
-  var _startCall = function () {
-
-    // Start call
-    _communication.start();
-    _callActive = true;
-
-    // Update UI
-    $('#callActive').addClass('active');
-    $('#videoHolderSmall').addClass('active');
-
-    $('#enableLocalAudio').show();
-    $('#enableLocalVideo').show();
-
-    if (_remoteParticipant) {
-      _swapVideoPositions('start');
-    }
-
+  /**
+   * Start publishing video/audio and subscribe to streams
+   */
+  const startCall = () => {
+    otCore.startCall()
+      .then(({ publishers, subscribers, meta }) => {
+        updateState({ publishers, subscribers, meta, active: true });
+      }).catch(error => console.log(error));
   };
 
-  var _endCall = function () {
-
-    // End call
-    _resetCallProps();
-    _communication.end();
-    _callActive = false;
-
-    // Update UI
-    $('#callActive').toggleClass('active');
-
-    $('#enableLocalAudio').hide();
-    $('#enableLocalVideo').hide();
-
-    if (_callActive || _remoteParticipant) {
-      _swapVideoPositions('end');
-    }
-
+  /**
+   * Toggle publishing local audio
+   */
+  const toggleLocalAudio = () => {
+    const enabled = state.localAudioEnabled;
+    otCore.toggleLocalAudio(!enabled);
+    updateState({ localAudioEnabled: !enabled });
+    const action = enabled ? 'add' : 'remove';
+    document.getElementById('toggleLocalAudio').classList[action]('muted');
   };
 
-  var _addEventListeners = function () {
+  /**
+   * Toggle publishing local video
+   */
+  const toggleLocalVideo = () => {
+    const enabled = state.localVideoEnabled;
+    otCore.toggleLocalVideo(!enabled);
+    updateState({ localVideoEnabled: !enabled });
+    const action = enabled ? 'add' : 'remove';
+    document.getElementById('toggleLocalVideo').classList[action]('muted');
+  };
 
-    // Call events
-    _accPack.registerEventListener('streamCreated', function (event) {
-
-      if (event.stream.videoType === 'camera') {
-        _remoteParticipant = true;
-        if (_callActive) {
-          _swapVideoPositions('joined');
-        }
-      }
-
-    });
-
-    _accPack.registerEventListener('streamDestroyed', function (event) {
-
-      if (event.stream.videoType === 'camera') {
-        _remoteParticipant = false;
-        if (_callActive) {
-          _swapVideoPositions('left');
-        }
-      }
-
-    });
-
-    _accPack.registerEventListener('startScreenSharing', function () {
-      $('#sharingMask').show();
-    });
-
-    _accPack.registerEventListener('endScreenSharing', function () {
-      $('#sharingMask').hide();
-    });
-
-    _accPack.registerEventListener('startViewingSharedScreen', function () {
-      _viewSharedScreen(true);
-    });
-
-    _accPack.registerEventListener('endViewingSharedScreen', function () {
-      _viewSharedScreen(false);
-    });
-
-    // Click events for enabling/disabling audio/video
-    var controls = [
-      'enableLocalAudio',
-      'enableLocalVideo',
-      'enableRemoteAudio',
-      'enableRemoteVideo'
+  /**
+   * Toggle end call
+   */
+  const toggleEndCall = () => {
+    updateState({ active: false });
+    otCore.endCall();
+  };
+  /**
+   * Subscribe to otCore and UI events
+   */
+  const createEventListeners = () => {
+    const events = [
+      'subscribeToCamera',
+      'unsubscribeFromCamera',
+      'subscribeToScreen',
+      'unsubscribeFromScreen',
+      'startScreenShare',
+      'endScreenShare',
     ];
-    controls.forEach(function (control) {
-      $(['#', control].join('')).on('click', function () {
-        _toggleMediaProperties(control);
-      });
-    });
+    events.forEach(event => otCore.on(event, ({ publishers, subscribers, meta }) => {
+      updateState({ publishers, subscribers, meta });
+    }));
+
+    document.getElementById('start').addEventListener('click', startCall);
+    document.getElementById('toggleLocalAudio').addEventListener('click', toggleLocalAudio);
+    document.getElementById('toggleLocalVideo').addEventListener('click', toggleLocalVideo);
+    document.getElementById('toggleEndCall').addEventListener('click', toggleEndCall);
   };
 
-  var _init = function () {
-
-    var accPackOptions = _.pick(_options, ['apiKey', 'sessionId', 'token', 'screensharing']);
-
-    _accPack = new AcceleratorPack(accPackOptions);
-    _session = _accPack.getSession();
-    _.extend(_options, _accPack.getOptions());
-
-    _session.on({
-      connectionCreated: function () {
-
-        if (_connected) {
-          return;
-        }
-
-        _connected = true;
-
-        var commOptions = _.extend({}, _options, {
-          session: _session,
-          accPack: _accPack
-        }, _accPack.getOptions());
-
-        _communication = new CommunicationAccPack(commOptions);
-        _addEventListeners();
-        _initialized = true;
-        _startCall();
-      }
-    });
+  /**
+   * Initialize otCore, connect to the session, and listen to events
+   */
+  const init = () => {
+    otCore.init(options);
+    otCore.connect().then(() => updateState({ connected: true }));
+    createEventListeners();
   };
 
-  var _connectCall = function () {
+  init();
+};
 
-    if (!_initialized) {
-      _init();
-    } else {
-      _callActive ? _endCall() : _startCall();
-    }
-  };
-
-  document.addEventListener('DOMContentLoaded', function () {
-    $('#callActive').on('click', _connectCall);
-  });
-
-}());
+document.addEventListener('DOMContentLoaded', app);

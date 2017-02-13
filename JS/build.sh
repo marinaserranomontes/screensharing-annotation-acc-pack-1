@@ -1,13 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-PUBLIC="../../sample-app/public"
-SRC_PATH="../opentok.js-ss-annotation/src/"
+PUBLIC="sample-app/public"
+SRC_PATH="$PUBLIC/js/components/"
 IMAGES_PATH="../opentok.js-ss-annotation/dist/images"
 TEMPLATES_PATH="../opentok.js-ss-annotation/dist/templates/"
 CSS_PATH="../opentok.js-ss-annotation/css"
 ANNOTATIONS_PATH="../opentok.js-ss-annotation/annotations"
-NPM_MODULES="../opentok.js-ss-annotation/node_modules"
+NPM_MODULES="sample-app/node_modules"
 
 function fetchNpmPackages()
 {
@@ -22,25 +22,20 @@ function fetchNpmPackages()
 function copyDependencies()
 {
 	echo "Copying NPM Packages"
-	cp -v $NPM_MODULES/opentok-one-to-one-communication/opentok-one-to-one-communication.js $SRC_PATH
+	cp -v $NPM_MODULES/opentok-accelerator-core/browser/opentok-acc-core.js $SRC_PATH
 	cp -v $NPM_MODULES/opentok-annotation/dist/opentok-annotation.js $SRC_PATH
 	cp -v $NPM_MODULES/opentok-screen-sharing/dist/opentok-screen-sharing.js $SRC_PATH
 	cp -v $NPM_MODULES/opentok-solutions-logging/dist/opentok-solutions-logging.js $SRC_PATH
-	cp -v $NPM_MODULES/opentok-solutions-css/style.css $CSS_PATH
 }
 
-if [[ -d opentok.js-ss-annotation ]]
+if [[ -d sample-app ]]
 then
-	cd opentok.js-ss-annotation
+	cd sample-app
+	npm install
 
+	cd ..
 	fetchNpmPackages
-
-	gulp dist
-        gulp zip
-	cd dist
-  cp -v screenshare-annotation-acc-pack.js $PUBLIC/js/components/screenshare-annotation-acc-pack.js
-	cp -v opentok-style.css $PUBLIC/css/
 else
-	echo "Please run this script from 'js-screensharing-annotation'."
+	echo "Please make sure the sample-app folder exist."
 	exit 1
 fi
