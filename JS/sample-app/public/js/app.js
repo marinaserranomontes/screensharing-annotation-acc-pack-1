@@ -24,7 +24,7 @@ const options = {
     callProperites: null, // Using default
   },
   screenSharing: {
-    extensionID: '', //Replace with your extensionID
+    extensionID: 'plocfffmbcclpdifaikiikgplfnepkpo', //Replace with your extensionID
     annotation: true,
     externalWindow: false,
     dev: true,
@@ -61,7 +61,7 @@ const app = () => {
     document.getElementById('appVideoContainer').setAttribute('class', videoContainerClass);
 
     const cameraPublisherClass =
-      `video-container ${!!activeCameraSubscribers || sharingScreen ? 'small' : ''} ${!!activeCameraSubscribers || sharingScreen ? 'small' : ''} ${sharingScreen || viewingSharedScreen ? 'left' : ''}`;
+      `video-container ${!!activeCameraSubscribers || sharingScreen ? 'small' : ''} ${!!activeCameraSubscribers || sharingScreen ? 'small' : ''} ${sharingScreen || viewingSharedScreen ? 'small' : ''}`;
     document.getElementById('cameraPublisherContainer').setAttribute('class', cameraPublisherClass);
 
     const screenPublisherClass = `video-container ${!sharingScreen ? 'hidden' : ''}`;
